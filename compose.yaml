@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  registration-service:
+    build: .
+    image: registration-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/registrationServiceDb
+      - SPRING_DATASOURCE_USERNAME=Faruh
+      - SPRING_DATASOURCE_PASSWORD=iamroot
+
+  db:
+    image: postgres:15.0-alpine
+    ports:
+      - "6531:5432"
+    environment:
+      - POSTGRES_DB=registrationServiceDb
+      - POSTGRES_USER=Faruh
+      - POSTGRES_PASSWORD=iamroot
