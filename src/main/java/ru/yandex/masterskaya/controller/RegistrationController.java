@@ -21,9 +21,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.masterskaya.dto.EventRegistrationDto;
-import ru.yandex.masterskaya.dto.EventRegistrationRequestDTO;
-import ru.yandex.masterskaya.dto.EventRegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.service.api.RegistrationService;
 
 import java.util.List;
@@ -48,8 +49,8 @@ public class RegistrationController {
     )
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EventRegistrationResponseDTO addRegistration(
-            @Valid @RequestBody @Parameter(description = "Данные для регистрации.") EventRegistrationRequestDTO eventRegistrationResponseDTO) {
+    public RegistrationResponseDTO addRegistration(
+            @Valid @RequestBody @Parameter(description = "Данные для регистрации.") RegistrationCreateRequestDto eventRegistrationResponseDTO) {
         log.info("Endpoint /registrations POST started. Received request to create registration {}", eventRegistrationResponseDTO);
         return registrationService.addRegistration(eventRegistrationResponseDTO);
     }
@@ -63,13 +64,12 @@ public class RegistrationController {
                     @ApiResponse(responseCode = "404", description = "Регистрация не найдена.")
             }
     )
-    @PatchMapping("/{eventId}")
+    @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public EventRegistrationDto updateRegistration(
-            @PathVariable @Parameter(description = "ID события для обновления.") Long eventId,
-            @Valid @RequestBody @Parameter(description = "Обновленные данные регистрации.") EventRegistrationDto eventRegistrationDto) {
-        log.info("Endpoint /registrations/{eventId} PATCH started. Received request to update registration {} with id:{}", eventRegistrationDto, eventId);
-        return registrationService.updateRegistration(eventId, eventRegistrationDto);
+    public RegistrationUpdateRequestDto updateRegistration(@Valid @RequestBody @Parameter(description = "Обновленные данные регистрации.")
+                                                           RegistrationUpdateRequestDto eventRegistrationDto) {
+        log.info("Endpoint /registrations/{eventId} PATCH started. Received request to update registration {} ", eventRegistrationDto);
+        return registrationService.updateRegistration(eventRegistrationDto);
     }
 
 
@@ -83,7 +83,7 @@ public class RegistrationController {
     )
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EventRegistrationRequestDTO getRegistration(@PathVariable @Parameter(description = "ID регистрации.") Long id) {
+    public RegistrationCreateRequestDto getRegistration(@PathVariable @Parameter(description = "ID регистрации.") Long id) {
         log.info("Endpoint /registrations/{id} GET started. Received request to get registration with id:{}", id);
         return registrationService.getRegistration(id);
     }
@@ -98,7 +98,7 @@ public class RegistrationController {
     )
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<EventRegistrationRequestDTO> getAllByEventId(
+    public List<RegistrationCreateRequestDto> getAllByEventId(
             @RequestParam @Parameter(description = "ID мероприятия.") Long eventId,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
             @Parameter(description = "Параметры пагинации.") Pageable pageable) {
@@ -118,12 +118,9 @@ public class RegistrationController {
     )
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteByPhoneAndPassword(
-            @RequestParam @Parameter(description = "Номер телефона.") String phone,
-            @RequestParam @Parameter(description = "Пароль.") String password) {
-        log.info("Endpoint /registrations/ DELETE started. Received request to Delete registration with same parameters");
-        String replace = phone.replace(' ', '+');
-        registrationService.deleteByPhoneNumberAndPassword(replace, password);
+    public void deleteByPhoneAndPassword(@Valid @RequestBody RegistrationDeleteRequestDto someDto) {
+        log.info("Endpoint /registrations DELETE started. Received request to Delete registration with same parameters");
+        registrationService.deleteByPhoneNumberAndPassword(someDto);
     }
 }
 

@@ -2,9 +2,9 @@ package ru.yandex.masterskaya.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import ru.yandex.masterskaya.dto.EventRegistrationDto;
-import ru.yandex.masterskaya.dto.EventRegistrationRequestDTO;
-import ru.yandex.masterskaya.dto.EventRegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
 
@@ -13,13 +13,13 @@ import java.util.List;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RegistrationMapper {
 
-    Registration toModel(EventRegistrationRequestDTO eventRegistrationRequestDTO, String password);
+    Registration toModel(RegistrationCreateRequestDto registrationRequestDTO, String password);
 
-    EventRegistrationResponseDTO toDto(Registration registration);
+    RegistrationResponseDTO toDto(Registration registration);
 
-    Registration toModelAfterDto(EventRegistrationDto eventRegistrationDto);
+    Registration toModelAfterDto(RegistrationUpdateRequestDto registrationDto);
 
-    EventRegistrationDto toFullDto(Registration registration);
+    RegistrationUpdateRequestDto toFullDto(Registration registration);
 
-    List<EventRegistrationRequestDTO> toListDto(List<RegistrationProjection> registrationProjectionList);
+    List<RegistrationCreateRequestDto> toListDto(List<RegistrationProjection> registrationProjectionList);
 }

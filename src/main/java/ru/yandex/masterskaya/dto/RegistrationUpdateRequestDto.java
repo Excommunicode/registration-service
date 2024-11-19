@@ -5,13 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class EventRegistrationResponseDTO implements Serializable {
+public class RegistrationUpdateRequestDto {
+    private Long id;
+    private String username;
+    private String email;
+    private String phone;
     private Integer number;
     private String password;
 }

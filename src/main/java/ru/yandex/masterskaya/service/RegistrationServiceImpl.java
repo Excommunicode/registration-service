@@ -7,9 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.masterskaya.dto.EventRegistrationDto;
-import ru.yandex.masterskaya.dto.EventRegistrationRequestDTO;
-import ru.yandex.masterskaya.dto.EventRegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.exception.NotFoundException;
 import ru.yandex.masterskaya.mapper.RegistrationMapper;
 import ru.yandex.masterskaya.model.Registration;
@@ -17,6 +18,7 @@ import ru.yandex.masterskaya.model.RegistrationProjection;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
 import ru.yandex.masterskaya.service.api.RegistrationService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,13 +34,13 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public EventRegistrationResponseDTO addRegistration(EventRegistrationRequestDTO eventRegistrationRequestDTO) {
-        log.info("Starting method addRegistration. Received eventRegistrationRequestDTO: {}", eventRegistrationRequestDTO);
+    public RegistrationResponseDTO addRegistration(RegistrationCreateRequestDto registrationCreateRequestDto) {
+        log.info("Starting method addRegistration. Received registrationCreateRequestDto: {}", registrationCreateRequestDto);
 
-        String substringUuid = UUID.randomUUID().toString().substring(0, 4);
+        String password = UUID.randomUUID().toString().substring(0, 4);
 
 
-        Registration registration = registrationMapper.toModel(eventRegistrationRequestDTO, substringUuid);
+        Registration registration = registrationMapper.toModel(registrationCreateRequestDto, password);
 
 
         Registration savedRegistration = registrationRepository.saveAndReturn(registration, registration.getEventId());
@@ -49,14 +51,13 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public EventRegistrationDto updateRegistration(Long eventId, EventRegistrationDto eventRegistrationDto) {
-        log.info("Starting method updateRegistration for eventId: {} with data: {}", eventId, eventRegistrationDto);
+    public RegistrationUpdateRequestDto updateRegistration(RegistrationUpdateRequestDto registrationUpdateRequestDto) {
+        log.info("Starting method updateRegistration for eventId:  with data: {}", registrationUpdateRequestDto);
 
-        Registration registration = registrationMapper.toModelAfterDto(eventRegistrationDto);
+        Registration registration = registrationMapper.toModelAfterDto(registrationUpdateRequestDto);
 
 
         Registration updatedRegistration = registrationRepository.updateByEventIdAndNumberAndPassword(
-                eventId,
                 registration.getNumber(),
                 registration.getPassword(),
                 registration.getUsername(),
@@ -69,10 +70,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     @Override
-    public EventRegistrationRequestDTO getRegistration(Long id) {
+    public RegistrationCreateRequestDto getRegistration(Long id) {
         log.info("Starting method getRegistration with ID: {}", id);
 
-        EventRegistrationRequestDTO registration = registrationRepository.findByIdDTO(id)
+        RegistrationCreateRequestDto registration = registrationRepository.findByIdDTO(id)
                 .orElseThrow(() -> {
                     log.warn("Registration not found for ID: {}", id);
                     return NotFoundException.builder()
@@ -85,12 +86,16 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     @Override
-    public List<EventRegistrationRequestDTO> getAllByEventId(Long eventId, Pageable pageable) {
+    public List<RegistrationCreateRequestDto> getAllByEventId(Long eventId, Pageable pageable) {
         log.info("Starting method getAllByEventId for eventId: {} with pageable: {}", eventId, pageable);
 
         List<RegistrationProjection> allByEventId = registrationRepository.findAllByEventId(eventId, pageable);
 
-        List<EventRegistrationRequestDTO> dtoList = registrationMapper.toListDto(allByEventId);
+        if (allByEventId == null || allByEventId.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<RegistrationCreateRequestDto> dtoList = registrationMapper.toListDto(allByEventId);
         log.info("Mapped registrations to DTO list. Total count: {}", dtoList.size());
 
         return dtoList;
@@ -98,14 +103,16 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public void deleteByPhoneNumberAndPassword(String number, String password) {
-        log.info("Starting method deleteByPhoneNumberAndPassword for number: {}", number);
+    public void deleteByPhoneNumberAndPassword(RegistrationDeleteRequestDto registrationDeleteRequestDto) {
+        String phone = registrationDeleteRequestDto.getPhone();
+        String password = registrationDeleteRequestDto.getPassword();
+        log.info("Starting method deleteByPhoneNumberAndPassword for number: {}", phone);
 
-        int deletedCount = registrationRepository.deleteByPhoneAndPassword(number, password);
+        int deletedCount = registrationRepository.deleteByPhoneAndPassword(phone, password);
         if (deletedCount == 0) {
-            log.warn("No registrations found for deletion with number: {} and password: {}", number, password);
+            log.warn("No registrations found for deletion with number: {} and password: {}", phone, password);
             throw NotFoundException.builder()
-                    .message(String.format("No registrations found for deletion with number: %s and password %s", number, password))
+                    .message(String.format("No registrations found for deletion with number: %s and password %s", phone, password))
                     .build();
         }
     }

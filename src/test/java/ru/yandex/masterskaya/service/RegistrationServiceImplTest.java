@@ -15,9 +15,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.masterskaya.dto.EventRegistrationDto;
-import ru.yandex.masterskaya.dto.EventRegistrationRequestDTO;
-import ru.yandex.masterskaya.dto.EventRegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
 import ru.yandex.masterskaya.service.api.RegistrationService;
@@ -50,11 +51,11 @@ class RegistrationServiceImplTest {
     @Test
     @DisplayName("Добавление регистрации")
     void addRegistration() {
-        EventRegistrationRequestDTO eventRegistrationRequestDTO = Instancio.of(EventRegistrationRequestDTO.class)
-                .ignore(Select.field(EventRegistrationRequestDTO::getId))
+        RegistrationCreateRequestDto eventRegistrationRequestDTO = Instancio.of(RegistrationCreateRequestDto.class)
+                .ignore(Select.field(RegistrationCreateRequestDto::getId))
                 .create();
 
-        EventRegistrationResponseDTO addedRegistration = registrationService.addRegistration(eventRegistrationRequestDTO);
+        RegistrationResponseDTO addedRegistration = registrationService.addRegistration(eventRegistrationRequestDTO);
 
         assertNotNull(addedRegistration);
         assertEquals(addedRegistration.getNumber(), 1);
@@ -64,15 +65,14 @@ class RegistrationServiceImplTest {
     @Test
     @DisplayName("Обновление регистрации")
     void updateRegistration() {
-        EventRegistrationRequestDTO eventRegistrationRequestDTO = Instancio.of(EventRegistrationRequestDTO.class)
-                .ignore(Select.field(EventRegistrationRequestDTO::getId))
-                .set(Select.field(EventRegistrationRequestDTO::getEventId), 1L)
+        RegistrationCreateRequestDto eventRegistrationRequestDTO = Instancio.of(RegistrationCreateRequestDto.class)
+                .ignore(Select.field(RegistrationCreateRequestDto::getId))
+                .set(Select.field(RegistrationCreateRequestDto::getEventId), 1L)
                 .create();
 
-        EventRegistrationResponseDTO addedRegistration = registrationService.addRegistration(eventRegistrationRequestDTO);
+        RegistrationResponseDTO addedRegistration = registrationService.addRegistration(eventRegistrationRequestDTO);
 
-        EventRegistrationDto eventRegistrationDto = EventRegistrationDto.builder()
-                .eventId(eventRegistrationRequestDTO.getEventId())
+        RegistrationUpdateRequestDto eventRegistrationDto = RegistrationUpdateRequestDto.builder()
                 .username("Leonid")
                 .email("Leonid@mail.ru")
                 .phone("+23433254")
@@ -80,7 +80,7 @@ class RegistrationServiceImplTest {
                 .password(addedRegistration.getPassword())
                 .build();
 
-        EventRegistrationDto updateRegistration = registrationService.updateRegistration(eventRegistrationDto.getEventId(), eventRegistrationDto);
+        RegistrationUpdateRequestDto updateRegistration = registrationService.updateRegistration(eventRegistrationDto);
         assertNotNull(updateRegistration);
         assertEquals(updateRegistration.getNumber(), addedRegistration.getNumber());
         assertEquals(updateRegistration.getPassword(), addedRegistration.getPassword());
@@ -89,14 +89,14 @@ class RegistrationServiceImplTest {
     @Test
     @DisplayName("Получение регистрации па айди")
     void getRegistration() {
-        EventRegistrationRequestDTO eventRegistrationRequestDTO = Instancio.of(EventRegistrationRequestDTO.class)
-                .ignore(Select.field(EventRegistrationRequestDTO::getId))
-                .set(Select.field(EventRegistrationRequestDTO::getEventId), 1L)
+        RegistrationCreateRequestDto eventRegistrationRequestDTO = Instancio.of(RegistrationCreateRequestDto.class)
+                .ignore(Select.field(RegistrationCreateRequestDto::getId))
+                .set(Select.field(RegistrationCreateRequestDto::getEventId), 1L)
                 .create();
 
         registrationService.addRegistration(eventRegistrationRequestDTO);
 
-        EventRegistrationRequestDTO registration = registrationService.getRegistration(1L);
+        RegistrationCreateRequestDto registration = registrationService.getRegistration(1L);
 
 
         assertEquals(eventRegistrationRequestDTO.getUsername(), registration.getUsername());
@@ -122,11 +122,11 @@ class RegistrationServiceImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
 
-        List<EventRegistrationRequestDTO> allByEventId = registrationService.getAllByEventId(1L, pageable);
+        List<RegistrationCreateRequestDto> allByEventId = registrationService.getAllByEventId(1L, pageable);
 
         assertEquals(10, allByEventId.size(), "Expected 10 registrations to be returned for event ID 1");
 
-        for (EventRegistrationRequestDTO dto : allByEventId) {
+        for (RegistrationCreateRequestDto dto : allByEventId) {
             assertEquals(1L, dto.getEventId(), "Event ID should be 1 for all registrations");
         }
 
@@ -139,19 +139,24 @@ class RegistrationServiceImplTest {
     @Test
     @DisplayName("Удаление регистрации")
     void deleteByPhoneNumberAndPassword() {
-        EventRegistrationRequestDTO eventRegistrationRequestDTO = Instancio.of(EventRegistrationRequestDTO.class)
-                .ignore(Select.field(EventRegistrationRequestDTO::getId))
-                .set(Select.field(EventRegistrationRequestDTO::getEventId), 1L)
+        RegistrationCreateRequestDto eventRegistrationRequestDTO = Instancio.of(RegistrationCreateRequestDto.class)
+                .ignore(Select.field(RegistrationCreateRequestDto::getId))
+                .set(Select.field(RegistrationCreateRequestDto::getEventId), 1L)
                 .create();
 
 
-        registrationService.addRegistration(eventRegistrationRequestDTO);
+        RegistrationResponseDTO eventRegistrationResponseDTO = registrationService.addRegistration(eventRegistrationRequestDTO);
+
+        RegistrationDeleteRequestDto someDto = RegistrationDeleteRequestDto.builder()
+                .phone(eventRegistrationRequestDTO.getPhone())
+                .password(eventRegistrationResponseDTO.getPassword())
+                .build();
 
 
         Registration registration = registrationRepository.findById(1L).orElse(null);
 
         entityManager.clear();
-        registrationService.deleteByPhoneNumberAndPassword(registration.getPhone(), registration.getPassword());
+        registrationService.deleteByPhoneNumberAndPassword(someDto);
 
         assertTrue(registrationRepository.findById(1L).isEmpty());
     }

@@ -4,7 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import ru.yandex.masterskaya.dto.EventRegistrationRequestDTO;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
 
@@ -31,22 +31,21 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     @Query(nativeQuery = true, value = """
             UPDATE registrations
             SET username = :username,
-                email = :email,
-                phone = :phone
-            WHERE event_id = :eventId
-              AND number = :number
+                email    = :email,
+                phone    = :phone
+            WHERE number = :number
               AND password = :password
             RETURNING *
             """)
-    Registration updateByEventIdAndNumberAndPassword(Long eventId,
-                                                     int number,
-                                                     String password,
-                                                     String username,
-                                                     String email,
-                                                     String phone);
+    Registration updateByEventIdAndNumberAndPassword(
+            int number,
+            String password,
+            String username,
+            String email,
+            String phone);
 
     @Query("""
-            SELECT new ru.yandex.masterskaya.dto.EventRegistrationRequestDTO(
+            SELECT new ru.yandex.masterskaya.dto.RegistrationCreateRequestDto(
                 e.id,
                 e.username,
                 e.email,
@@ -56,7 +55,7 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
             FROM Registration e
             WHERE e.id = :id
             """)
-    Optional<EventRegistrationRequestDTO> findByIdDTO(Long id);
+    Optional<RegistrationCreateRequestDto> findByIdDTO(Long id);
 
     List<RegistrationProjection> findAllByEventId(Long eventId, Pageable pageable);
 

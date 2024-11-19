@@ -15,9 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import ru.yandex.masterskaya.dto.EventRegistrationDto;
-import ru.yandex.masterskaya.dto.EventRegistrationRequestDTO;
-import ru.yandex.masterskaya.dto.EventRegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.service.api.RegistrationService;
 
 import java.util.List;
@@ -32,7 +33,7 @@ class RegistrationControllerTest {
     private final ObjectMapper objectMapper;
     private final MockMvc mockMvc;
 
-    private static final EventRegistrationRequestDTO registration = EventRegistrationRequestDTO.builder()
+    private static final RegistrationCreateRequestDto registration = RegistrationCreateRequestDto.builder()
             .id(1L)
             .username("Farukh")
             .email("someemail@mail.ru")
@@ -41,16 +42,15 @@ class RegistrationControllerTest {
             .build();
 
 
-    private static final EventRegistrationResponseDTO registerDto = EventRegistrationResponseDTO.builder()
+    private static final RegistrationResponseDTO registerDto = RegistrationResponseDTO.builder()
             .number(1)
             .password("1234")
             .build();
 
-    private static final EventRegistrationDto eventRegistrationDto = EventRegistrationDto.builder()
+    private static final RegistrationUpdateRequestDto eventRegistrationDto = RegistrationUpdateRequestDto.builder()
             .username("Farukh")
             .email("someemail@mail.ru")
             .phone("+12345678901")
-            .eventId(1L)
             .build();
 
 
@@ -59,7 +59,7 @@ class RegistrationControllerTest {
     @DisplayName("Добавление регистрации в контролере")
     void addRegistration() {
 
-        Mockito.when(registrationService.addRegistration(Mockito.any(EventRegistrationRequestDTO.class)))
+        Mockito.when(registrationService.addRegistration(Mockito.any(RegistrationCreateRequestDto.class)))
                 .thenReturn(registerDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/registrations")
@@ -72,10 +72,10 @@ class RegistrationControllerTest {
     @Test
     @SneakyThrows
     void updateRegistration() {
-        Mockito.when(registrationService.updateRegistration(Mockito.anyLong(), Mockito.any(EventRegistrationDto.class)))
+        Mockito.when(registrationService.updateRegistration(Mockito.any(RegistrationUpdateRequestDto.class)))
                 .thenReturn(eventRegistrationDto);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch("/registrations/{eventId}", 1L)
+        mockMvc.perform(MockMvcRequestBuilders.patch("/registrations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(eventRegistrationDto)))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -96,7 +96,7 @@ class RegistrationControllerTest {
     @SneakyThrows
     void getAllByEventId() {
         Pageable pageable = PageRequest.of(0, 20);
-        List<EventRegistrationRequestDTO> eventRegistrationRequestDTOS = List.of(registration);
+        List<RegistrationCreateRequestDto> eventRegistrationRequestDTOS = List.of(registration);
 
         Mockito.when(registrationService.getAllByEventId(1L, pageable)).thenReturn(eventRegistrationRequestDTOS);
 
@@ -113,15 +113,20 @@ class RegistrationControllerTest {
     @Test
     @SneakyThrows
     void deleteByPhoneAndPassword() {
-        String phone = "123 456 789";
+        String phone = "123456789";
         String password = "securePassword123";
-        String expectedPhone = phone.replace(' ', '+');
+        RegistrationDeleteRequestDto someDto = RegistrationDeleteRequestDto.builder()
+                .phone(phone)
+                .password(password)
+                .build();
 
-        Mockito.doNothing().when(registrationService).deleteByPhoneNumberAndPassword(expectedPhone, password);
+
+        Mockito.doNothing().when(registrationService).deleteByPhoneNumberAndPassword(someDto);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/registrations")
-                        .param("phone", phone)
-                        .param("password", password))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(someDto)))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
+
     }
 }
