@@ -40,7 +40,7 @@ public class Registration implements Serializable {
     @Column(nullable = false)
     private int number;
 
-    @Column(name = "password")
+    @Column(nullable = false)
     private String password;
 
     @Override
