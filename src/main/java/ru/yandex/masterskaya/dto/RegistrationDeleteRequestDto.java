@@ -9,14 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class EventRegistrationDto {
-
-    private Long id;
-    private String username;
-    private String email;
+public class RegistrationDeleteRequestDto {
     private String phone;
-
-    private Long eventId;
-    private Integer number;
     private String password;
 }

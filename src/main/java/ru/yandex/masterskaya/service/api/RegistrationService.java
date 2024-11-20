@@ -1,21 +1,23 @@
 package ru.yandex.masterskaya.service.api;
 
 import org.springframework.data.domain.Pageable;
-import ru.yandex.masterskaya.dto.EventRegistrationDto;
-import ru.yandex.masterskaya.dto.EventRegistrationRequestDTO;
-import ru.yandex.masterskaya.dto.EventRegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 
 import java.util.List;
 
 public interface RegistrationService {
 
-    EventRegistrationResponseDTO addRegistration(EventRegistrationRequestDTO eventRegistrationResponseDTO);
+    RegistrationResponseDTO addRegistration(RegistrationCreateRequestDto eventRegistrationResponseDTO);
 
-    EventRegistrationDto updateRegistration(Long eventId, EventRegistrationDto eventRegistrationDto);
+    RegistrationUpdateRequestDto updateRegistration(RegistrationUpdateRequestDto eventRegistrationDto);
 
-    EventRegistrationRequestDTO getRegistration(Long id);
+    RegistrationCreateRequestDto getRegistration(Long id);
 
-    List<EventRegistrationRequestDTO> getAllByEventId(Long eventId, Pageable pageable);
+    List<RegistrationCreateRequestDto> getAllByEventId(Long eventId, Pageable pageable);
 
-    void deleteByPhoneNumberAndPassword(String number, String password);
+    void deleteByPhoneNumberAndPassword(RegistrationDeleteRequestDto someDto);
+
 }

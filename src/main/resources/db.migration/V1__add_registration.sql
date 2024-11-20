@@ -7,3 +7,4 @@ CREATE TABLE IF NOT EXISTS registrations
     event_id BIGINT       NOT NULL,
     number   INT          NOT NULL
 );
+

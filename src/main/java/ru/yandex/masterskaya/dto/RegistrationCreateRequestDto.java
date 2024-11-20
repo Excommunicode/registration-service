@@ -16,7 +16,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class EventRegistrationRequestDTO implements Serializable {
+public class RegistrationCreateRequestDto implements Serializable {
     private Long id;
 
     @NotNull(message = "Username cannot be null")
