@@ -37,7 +37,7 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
               AND password = :password
             RETURNING *
             """)
-    Registration updateByEventIdAndNumberAndPassword(
+    Optional<Registration> updateByEventIdAndNumberAndPassword(
             int number,
             String password,
             String username,

@@ -11,6 +11,7 @@ import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
+import ru.yandex.masterskaya.exception.BadRequestException;
 import ru.yandex.masterskaya.exception.NotFoundException;
 import ru.yandex.masterskaya.mapper.RegistrationMapper;
 import ru.yandex.masterskaya.model.Registration;
@@ -20,6 +21,7 @@ import ru.yandex.masterskaya.service.api.RegistrationService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -63,7 +65,12 @@ public class RegistrationServiceImpl implements RegistrationService {
                 registration.getUsername(),
                 registration.getEmail(),
                 registration.getPhone()
-        );
+        ).orElseThrow(() ->  BadRequestException.builder()
+                .message(String.format("This registration: %s was not possible to update the registration", registrationUpdateRequestDto))
+                .build());
+
+
+
         log.info("Registration successfully updated. Updated details: {}", updatedRegistration);
 
         return registrationMapper.toFullDto(updatedRegistration);
