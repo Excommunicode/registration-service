@@ -104,15 +104,15 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public void deleteByPhoneNumberAndPassword(RegistrationDeleteRequestDto registrationDeleteRequestDto) {
-        String phone = registrationDeleteRequestDto.getPhone();
+        int number = registrationDeleteRequestDto.getNumber();
         String password = registrationDeleteRequestDto.getPassword();
-        log.info("Starting method deleteByPhoneNumberAndPassword for number: {}", phone);
+        log.info("Starting method deleteByPhoneNumberAndPassword for number: {}", number);
 
-        int deletedCount = registrationRepository.deleteByPhoneAndPassword(phone, password);
+        int deletedCount = registrationRepository.deleteByPhoneAndPassword(number, password);
         if (deletedCount == 0) {
-            log.warn("No registrations found for deletion with number: {} and password: {}", phone, password);
+            log.warn("No registrations found for deletion with number: {} and password: {}", number, password);
             throw NotFoundException.builder()
-                    .message(String.format("No registrations found for deletion with number: %s and password %s", phone, password))
+                    .message(String.format("No registrations found for deletion with number: %s and password %s", number, password))
                     .build();
         }
     }

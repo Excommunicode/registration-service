@@ -113,10 +113,10 @@ class RegistrationControllerTest {
     @Test
     @SneakyThrows
     void deleteByPhoneAndPassword() {
-        String phone = "123456789";
+        int phone = 1;
         String password = "securePassword123";
         RegistrationDeleteRequestDto someDto = RegistrationDeleteRequestDto.builder()
-                .phone(phone)
+                .number(phone)
                 .password(password)
                 .build();
 

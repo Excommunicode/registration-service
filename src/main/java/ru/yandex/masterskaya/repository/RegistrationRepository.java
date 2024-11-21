@@ -63,8 +63,8 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     @Query(nativeQuery = true, value = """
             DELETE
             FROM registrations
-            WHERE phone = :phone
+            WHERE number = :number
             AND password = :password
             """)
-    int deleteByPhoneAndPassword(String phone, String password);
+    int deleteByPhoneAndPassword(int number, String password);
 }
