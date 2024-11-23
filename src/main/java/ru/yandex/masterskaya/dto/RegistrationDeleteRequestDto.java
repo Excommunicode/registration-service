@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class RegistrationDeleteRequestDto {
-    private String phone;
+    private int number;
     private String password;
 }

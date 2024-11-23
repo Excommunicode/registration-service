@@ -148,12 +148,12 @@ class RegistrationServiceImplTest {
         RegistrationResponseDTO eventRegistrationResponseDTO = registrationService.addRegistration(eventRegistrationRequestDTO);
 
         RegistrationDeleteRequestDto someDto = RegistrationDeleteRequestDto.builder()
-                .phone(eventRegistrationRequestDTO.getPhone())
+                .number(eventRegistrationResponseDTO.getNumber())
                 .password(eventRegistrationResponseDTO.getPassword())
                 .build();
 
 
-        Registration registration = registrationRepository.findById(1L).orElse(null);
+        registrationRepository.findById(1L).orElse(null);
 
         entityManager.clear();
         registrationService.deleteByPhoneNumberAndPassword(someDto);

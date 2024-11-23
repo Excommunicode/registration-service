@@ -41,7 +41,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"1\",\r\n    \"username\": \"bebra\",\r\n    \"email\": \"some@mail.ru\",\r\n    \"phone\": \"+432424141\",\r\n    \"eventId\": \"1\",\r\n    \"number\": \"8\",\r\n    \"password\": \"b3c0\"\r\n}",
+					"raw": "{\r\n    \"id\": \"5\",\r\n    \"username\": \"bebra\",\r\n    \"email\": \"some@mail.ru\",\r\n    \"phone\": \"+432424141\",\r\n    \"number\": \"1\",\r\n    \"password\": \"06c7\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
