@@ -7,22 +7,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
-import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
+import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.exception.BadRequestException;
 import ru.yandex.masterskaya.exception.NotFoundException;
 import ru.yandex.masterskaya.mapper.RegistrationMapper;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
+import ru.yandex.masterskaya.model.Status;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
 import ru.yandex.masterskaya.service.api.RegistrationService;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,7 +51,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
 
         Registration registration = registrationMapper.toModel(registrationCreateRequestDto, password);
-
+        registration.setCreatedDateTime(LocalDateTime.now());
 
         Registration savedRegistration = registrationRepository.saveAndReturn(registration, registration.getEventId());
         log.info("Registration successfully saved with ID: {} and details: {}", savedRegistration.getId(), savedRegistration);
@@ -65,10 +73,9 @@ public class RegistrationServiceImpl implements RegistrationService {
                 registration.getUsername(),
                 registration.getEmail(),
                 registration.getPhone()
-        ).orElseThrow(() ->  BadRequestException.builder()
+        ).orElseThrow(() -> BadRequestException.builder()
                 .message(String.format("This registration: %s was not possible to update the registration", registrationUpdateRequestDto))
                 .build());
-
 
 
         log.info("Registration successfully updated. Updated details: {}", updatedRegistration);
@@ -124,4 +131,54 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
     }
 
+    @Transactional
+    public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request) {
+        Registration registration = registrationRepository.findById(request.getId())
+                .orElseThrow(() -> {
+                    log.warn("Registration not found for ID: {}", request.getId());
+                    return NotFoundException.builder()
+                            .message(String.format("Registration with id: %s not found", request.getId()))
+                            .build();
+                });
+
+        if (request.getStatus() == Status.REJECTED && request.getRejectionReason() == null) {
+            throw BadRequestException.builder()
+                    .message("Rejection reason is required for status REJECTED")
+                    .build();
+        }
+
+        registration.setStatus(request.getStatus());
+        registration.setRejectionReason(request.getRejectionReason());
+        registrationRepository.save(registration);
+
+        if (request.getStatus() == Status.APPROVED) {
+            handleWaitListUpdate(registration.getEventId());
+        }
+        return registrationMapper.toFullResponseDto(registration);
+    }
+
+    public List<RegistrationFullResponseDto> getRegistrationsByStatusAndEventId(Set<Status> statuses, Long eventId) {
+        return registrationRepository.findByStatusInAndEventIdOrderByCreatedDateTimeAsc(statuses, eventId).stream()
+                .map(registrationMapper::toFullResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    public RegistrationStatusCountResponseDto getStatusCounts(Long eventId) {
+        List<Object[]> results = registrationRepository.countByEventIdGroupByStatus(eventId);
+        RegistrationStatusCountResponseDto statusCounts = new RegistrationStatusCountResponseDto(1L, new HashMap<>());
+        for (Object[] result : results) {
+            statusCounts.getStatusCounts().put((Status) result[0], (Long) result[1]);
+        }
+        return statusCounts;
+    }
+
+    private void handleWaitListUpdate(Long eventId) {
+        Optional<Registration> waitListCandidate = registrationRepository.findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(
+                eventId, Status.WAITLIST);
+
+        waitListCandidate.ifPresent(candidate -> {
+            candidate.setStatus(Status.PENDING);
+            registrationRepository.save(candidate);
+        });
+    }
 }

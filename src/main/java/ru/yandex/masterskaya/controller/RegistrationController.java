@@ -21,13 +21,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
-import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
+import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.model.Status;
 import ru.yandex.masterskaya.service.api.RegistrationService;
 
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RestController
@@ -121,6 +126,29 @@ public class RegistrationController {
     public void deleteByPhoneAndPassword(@Valid @RequestBody RegistrationDeleteRequestDto someDto) {
         log.info("Endpoint /registrations DELETE started. Received request to Delete registration with same parameters");
         registrationService.deleteByPhoneNumberAndPassword(someDto);
+    }
+
+    @PatchMapping("/{id}/status")
+    @ResponseStatus(HttpStatus.OK)
+    public RegistrationFullResponseDto updateStatus(@PathVariable Long id, @Valid @RequestBody RegistrationStatusUpdateRequestDto request) {
+        log.info("Updating status for registration with id: {}", id);
+        return registrationService.updateRegistrationStatus(request);
+    }
+
+    @GetMapping("/status")
+    @ResponseStatus(HttpStatus.OK)
+    public List<RegistrationFullResponseDto> getByStatusAndEventId(
+            @RequestParam Set<Status> statuses,
+            @RequestParam Long eventId) {
+        log.info("Fetching registrations with statuses {} for eventId {}", statuses, eventId);
+        return registrationService.getRegistrationsByStatusAndEventId(statuses, eventId);
+    }
+
+    @GetMapping("/{eventId}/status/counts")
+    @ResponseStatus(HttpStatus.OK)
+    public RegistrationStatusCountResponseDto getStatusCounts(@PathVariable Long eventId) {
+        log.info("Fetching status counts for eventId {}", eventId);
+        return registrationService.getStatusCounts(eventId);
     }
 }
 
