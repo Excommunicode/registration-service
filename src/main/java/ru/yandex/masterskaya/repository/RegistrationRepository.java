@@ -75,6 +75,8 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
             """)
     int deleteByPhoneAndPassword(int number, String password);
 
+    Optional<Registration> findByNumberAndPassword(int number, String password);
+
     List<Registration> findByStatusInAndEventIdOrderByCreatedDateTimeAsc(Set<Status> statuses, Long eventId);
 
     Optional<Registration> findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(Long eventId, Status status);

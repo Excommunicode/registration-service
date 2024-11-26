@@ -25,7 +25,7 @@ public interface RegistrationService {
 
     void deleteByPhoneNumberAndPassword(RegistrationDeleteRequestDto someDto);
 
-    RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request);
+    RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long id);
 
     List<RegistrationFullResponseDto> getRegistrationsByStatusAndEventId(Set<Status> statuses, Long eventId);
 

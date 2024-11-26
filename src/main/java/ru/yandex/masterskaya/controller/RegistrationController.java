@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -130,9 +131,9 @@ public class RegistrationController {
 
     @PatchMapping("/{id}/status")
     @ResponseStatus(HttpStatus.OK)
-    public RegistrationFullResponseDto updateStatus(@PathVariable Long id, @Valid @RequestBody RegistrationStatusUpdateRequestDto request) {
-        log.info("Updating status for registration with id: {}", id);
-        return registrationService.updateRegistrationStatus(request);
+    public RegistrationFullResponseDto updateStatus(@PathVariable @Min(1) Long id, @RequestBody RegistrationStatusUpdateRequestDto request) {
+        log.info("Updating status for registration with id: {}, status: {}", id, request.getStatus());
+        return registrationService.updateRegistrationStatus(request, id);
     }
 
     @GetMapping("/status")

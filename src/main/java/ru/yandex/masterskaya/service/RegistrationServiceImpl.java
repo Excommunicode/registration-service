@@ -121,23 +121,25 @@ public class RegistrationServiceImpl implements RegistrationService {
         int number = registrationDeleteRequestDto.getNumber();
         String password = registrationDeleteRequestDto.getPassword();
         log.info("Starting method deleteByPhoneNumberAndPassword for number: {}", number);
+        Registration registration = registrationRepository.findByNumberAndPassword(number, password)
+                .orElseThrow(() -> NotFoundException.builder()
+                        .message(String.format("No registrations found for deletion with number: %s and password %s", number, password))
+                        .build());
+        registrationRepository.deleteByPhoneAndPassword(number, password);
 
-        int deletedCount = registrationRepository.deleteByPhoneAndPassword(number, password);
-        if (deletedCount == 0) {
-            log.warn("No registrations found for deletion with number: {} and password: {}", number, password);
-            throw NotFoundException.builder()
-                    .message(String.format("No registrations found for deletion with number: %s and password %s", number, password))
-                    .build();
+        if (registration.getStatus() == Status.APPROVED) {
+            handleWaitListUpdate(registration.getEventId());
         }
     }
 
     @Transactional
-    public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request) {
-        Registration registration = registrationRepository.findById(request.getId())
+    public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long id) {
+        log.info("Starting method updateRegistrationStatus with id: {}, status: {}", id, request.getStatus());
+        Registration registration = registrationRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("Registration not found for ID: {}", request.getId());
+                    log.warn("Registration not found for ID: {}", id);
                     return NotFoundException.builder()
-                            .message(String.format("Registration with id: %s not found", request.getId()))
+                            .message(String.format("Registration with id: %s not found", id))
                             .build();
                 });
 
@@ -151,9 +153,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         registration.setRejectionReason(request.getRejectionReason());
         registrationRepository.save(registration);
 
-        if (request.getStatus() == Status.APPROVED) {
-            handleWaitListUpdate(registration.getEventId());
-        }
         return registrationMapper.toFullResponseDto(registration);
     }
 
@@ -173,10 +172,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     private void handleWaitListUpdate(Long eventId) {
-        Optional<Registration> waitListCandidate = registrationRepository.findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(
-                eventId, Status.WAITLIST);
+        Optional<Registration> waitListCandidate = registrationRepository
+                .findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(eventId, Status.WAITLIST);
 
         waitListCandidate.ifPresent(candidate -> {
+            log.info(String.valueOf(candidate));
             candidate.setStatus(Status.PENDING);
             registrationRepository.save(candidate);
         });

@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.yandex.masterskaya.model.Status;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,6 +24,4 @@ public class RegistrationFullResponseDto {
     private Status status;
 
     private String rejectionReason;
-
-    private LocalDateTime createdDateTime;
 }
