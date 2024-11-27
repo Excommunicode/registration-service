@@ -15,13 +15,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
-import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
+import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.model.Status;
 import ru.yandex.masterskaya.service.api.RegistrationService;
 
 import java.util.List;
+import java.util.Map;
 
 @WebMvcTest(RegistrationController.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -53,6 +58,13 @@ class RegistrationControllerTest {
             .phone("+12345678901")
             .build();
 
+    private static final RegistrationFullResponseDto registrationFullResponseDto = RegistrationFullResponseDto.builder()
+            .username("name")
+            .email("email@gmail.com")
+            .phone("+1233213")
+            .status(Status.PENDING)
+            .eventId(1L)
+            .build();
 
     @Test
     @SneakyThrows
@@ -128,5 +140,45 @@ class RegistrationControllerTest {
                         .content(objectMapper.writeValueAsString(someDto)))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
 
+    }
+
+    @Test
+    @SneakyThrows
+    void updateStatus() {
+        RegistrationStatusUpdateRequestDto registrationStatusUpdateRequestDto =
+                new RegistrationStatusUpdateRequestDto(Status.APPROVED, null);
+        Mockito.when(registrationService.updateRegistrationStatus(Mockito.any(RegistrationStatusUpdateRequestDto.class), Mockito.anyLong()))
+                .thenReturn(registrationFullResponseDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/registrations/1/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationStatusUpdateRequestDto)))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    void getByStatusAndEventId() {
+        Mockito.when(registrationService.getRegistrationsByStatusAndEventId(Mockito.any(), Mockito.anyLong()))
+                .thenReturn(List.of(registrationFullResponseDto));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/registrations/status?eventId=1&statuses=APPROVED")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    void getStatusCounts() {
+
+        Mockito.when(registrationService.getStatusCounts(Mockito.anyLong()))
+                .thenReturn(new RegistrationStatusCountResponseDto(
+                        1L,
+                        Map.of(Status.APPROVED, 1L)));
+
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/registrations/1/status/counts")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }

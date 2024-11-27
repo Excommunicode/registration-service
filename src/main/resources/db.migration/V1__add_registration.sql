@@ -5,6 +5,9 @@ CREATE TABLE IF NOT EXISTS registrations
     email    VARCHAR(255) NOT NULL,
     phone    VARCHAR(255) NOT NULL,
     event_id BIGINT       NOT NULL,
-    number   INT          NOT NULL
+    number   INT          NOT NULL,
+    created_date_time TIMESTAMP NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    rejected_reason VARCHAR(255)
 );
 

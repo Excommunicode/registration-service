@@ -9,5 +9,8 @@ CREATE TABLE IF NOT EXISTS registrations
     phone    VARCHAR(255)  NOT NULL,
     event_id BIGINT        NOT NULL,
     number   INT           NOT NULL,
-    password VARCHAR(1024) NOT NULL
+    password VARCHAR(1024) NOT NULL,
+    created_date_time TIMESTAMP NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    rejected_reason VARCHAR(255)
 );
