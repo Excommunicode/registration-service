@@ -1,17 +1,12 @@
 package ru.yandex.masterskaya.service.api;
 
 import org.springframework.data.domain.Pageable;
-import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
-import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
-import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
-import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
-import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
-import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 
 import java.util.List;
-import java.util.Set;
 
 public interface RegistrationService {
 
@@ -25,9 +20,4 @@ public interface RegistrationService {
 
     void deleteByPhoneNumberAndPassword(RegistrationDeleteRequestDto someDto);
 
-    RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long id);
-
-    List<RegistrationFullResponseDto> getRegistrationsByStatusAndEventId(Set<Status> statuses, Long eventId);
-
-    RegistrationStatusCountResponseDto getStatusCounts(Long eventId);
 }

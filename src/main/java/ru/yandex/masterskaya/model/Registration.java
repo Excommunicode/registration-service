@@ -2,8 +2,6 @@ package ru.yandex.masterskaya.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,15 +10,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
@@ -48,26 +43,29 @@ public class Registration implements Serializable {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Status status = Status.PENDING;
-
-    @Column(name = "rejected_reason")
-    private String rejectionReason;
-
-    @Column(name = "created_date_time")
-    private LocalDateTime createdDateTime;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Registration that = (Registration) o;
-        return number == that.number && Objects.equals(id, that.id) && Objects.equals(username, that.username) && Objects.equals(email, that.email) && Objects.equals(phone, that.phone) && Objects.equals(eventId, that.eventId) && Objects.equals(password, that.password) && status == that.status && Objects.equals(rejectionReason, that.rejectionReason);
+        return number == that.number && Objects.equals(id, that.id) && Objects.equals(username, that.username) && Objects.equals(email, that.email) && Objects.equals(phone, that.phone) && Objects.equals(eventId, that.eventId) && Objects.equals(password, that.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, email, phone, eventId, number, password, status, rejectionReason, createdDateTime);
+        return Objects.hash(id, username, email, phone, eventId, number, password);
+    }
+
+    @Override
+    public String toString() {
+        return "Registration{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                ", eventId=" + eventId +
+                ", number=" + number +
+                ", password='" + password + '\'' +
+                '}';
     }
 }

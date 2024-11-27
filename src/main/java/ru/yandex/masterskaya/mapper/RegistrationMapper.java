@@ -2,10 +2,9 @@ package ru.yandex.masterskaya.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
-import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
-import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
 
@@ -23,6 +22,4 @@ public interface RegistrationMapper {
     RegistrationUpdateRequestDto toFullDto(Registration registration);
 
     List<RegistrationCreateRequestDto> toListDto(List<RegistrationProjection> registrationProjectionList);
-
-    RegistrationFullResponseDto toFullResponseDto(Registration registration);
 }
