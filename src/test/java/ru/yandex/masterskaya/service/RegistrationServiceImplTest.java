@@ -15,15 +15,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
-import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
+import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
+import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
+import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.model.Registration;
+import ru.yandex.masterskaya.model.Status;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
 import ru.yandex.masterskaya.service.api.RegistrationService;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -167,4 +172,88 @@ class RegistrationServiceImplTest {
         assertFalse(registrationRepository.existsById(1L), "Запись не была удалена");
     }
 
+    @Test
+    void updateRegistrationStatus() {
+        RegistrationStatusUpdateRequestDto registrationStatusUpdateRequestDto =
+                new RegistrationStatusUpdateRequestDto(Status.REJECTED, "reason");
+
+        RegistrationCreateRequestDto eventRegistrationRequestDTO = RegistrationCreateRequestDto.builder()
+                .eventId(30L)
+                .phone("+12344234")
+                .username("username")
+                .email("email@gmail.com")
+                .build();
+
+        registrationService.addRegistration(eventRegistrationRequestDTO);
+
+        RegistrationFullResponseDto response = registrationService.updateRegistrationStatus(
+                registrationStatusUpdateRequestDto,
+                registrationService.getAllByEventId(30L, Pageable.ofSize(1)).getFirst().getId());
+
+        assertEquals(Status.REJECTED, response.getStatus());
+        assertEquals(registrationStatusUpdateRequestDto.getRejectionReason(), response.getRejectionReason());
+    }
+
+    @Test
+    void getRegistrationsByStatusAndEventId() {
+
+        initFiveRegistrationsWithStatuses(31L);
+
+        List<RegistrationFullResponseDto> pending = registrationService.getRegistrationsByStatusAndEventId(Set.of(Status.PENDING), 31L);
+        List<RegistrationFullResponseDto> waitlist = registrationService.getRegistrationsByStatusAndEventId(Set.of(Status.WAITLIST), 31L);
+        List<RegistrationFullResponseDto> rejected = registrationService.getRegistrationsByStatusAndEventId(Set.of(Status.REJECTED), 31L);
+        List<RegistrationFullResponseDto> approved = registrationService.getRegistrationsByStatusAndEventId(Set.of(Status.APPROVED), 31L);
+
+
+        assertEquals(1, pending.size());
+        assertEquals(1, waitlist.size());
+        assertEquals(2, rejected.size());
+        assertEquals(1, approved.size());
+    }
+
+    @Test
+    void getStatusCounts() {
+
+        initFiveRegistrationsWithStatuses(32L);
+
+        Map<Status, Long> counts = registrationService.getStatusCounts(32L).getStatusCounts();
+
+        assertEquals(1, counts.get(Status.APPROVED));
+        assertEquals(1, counts.get(Status.WAITLIST));
+        assertEquals(2, counts.get(Status.REJECTED));
+        assertEquals(1, counts.get(Status.PENDING));
+
+    }
+
+
+    private void initFiveRegistrationsWithStatuses(Long eventId) {
+        RegistrationCreateRequestDto eventRegistrationRequestDTO = RegistrationCreateRequestDto.builder()
+                .eventId(eventId)
+                .phone("+12344234")
+                .username("username")
+                .email("email@gmail.com")
+                .build();
+
+        for (int i = 0; i < 5; i++) {
+            registrationService.addRegistration(eventRegistrationRequestDTO);
+        }
+
+        List<Long> ids = registrationService.getAllByEventId(eventId, Pageable.ofSize(5)).stream()
+                .map(RegistrationCreateRequestDto::getId)
+                .toList();
+
+        RegistrationStatusUpdateRequestDto registrationStatusUpdateRequestDto =
+                new RegistrationStatusUpdateRequestDto(Status.APPROVED, "reason");
+
+        registrationService.updateRegistrationStatus(registrationStatusUpdateRequestDto, ids.get(0));
+
+        registrationStatusUpdateRequestDto.setStatus(Status.WAITLIST);
+        registrationService.updateRegistrationStatus(registrationStatusUpdateRequestDto, ids.get(1));
+
+        registrationStatusUpdateRequestDto.setStatus(Status.REJECTED);
+        registrationService.updateRegistrationStatus(registrationStatusUpdateRequestDto, ids.get(2));
+
+        registrationStatusUpdateRequestDto.setStatus(Status.REJECTED);
+        registrationService.updateRegistrationStatus(registrationStatusUpdateRequestDto, ids.get(3));
+    }
 }
