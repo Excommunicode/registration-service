@@ -74,7 +74,7 @@ public class RegistrationController {
     @ResponseStatus(HttpStatus.OK)
     public RegistrationUpdateRequestDto updateRegistration(@Valid @RequestBody @Parameter(description = "Обновленные данные регистрации.")
                                                            RegistrationUpdateRequestDto eventRegistrationDto) {
-        log.info("Endpoint /registrations/{eventId} PATCH started. Received request to update registration {} ", eventRegistrationDto);
+        log.info("Endpoint /registrations PATCH started. Received request to update registration {} ", eventRegistrationDto);
         return registrationService.updateRegistration(eventRegistrationDto);
     }
 
