@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
@@ -36,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Transactional
+
 @SpringBootTest
 @ActiveProfiles("test")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -161,12 +160,10 @@ class RegistrationServiceImplTest {
 
         registrationRepository.findById(1L).orElse(null);
 
-        entityManager.flush();
         entityManager.clear();
 
         registrationService.deleteByPhoneNumberAndPassword(someDto);
 
-        entityManager.flush();
         entityManager.clear();
 
         assertFalse(registrationRepository.existsById(1L), "Запись не была удалена");

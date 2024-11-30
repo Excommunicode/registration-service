@@ -53,8 +53,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         Registration registration = registrationMapper.toModel(registrationCreateRequestDto, password);
         registration.setCreatedDateTime(LocalDateTime.now());
 
-        Registration savedRegistration = registrationRepository.saveAndReturn(registration, registration.getEventId());
-        log.info("Registration successfully saved with ID: {} and details: {}", savedRegistration.getId(), savedRegistration);
+        Registration savedRegistration = registrationRepository.saveAndReturn(registration);
+        log.info("Registration successfully saved with Number: {} and details: {}", savedRegistration.getNumber(), savedRegistration);
 
         return registrationMapper.toDto(savedRegistration);
     }
@@ -67,16 +67,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         Registration registration = registrationMapper.toModelAfterDto(registrationUpdateRequestDto);
 
 
-        Registration updatedRegistration = registrationRepository.updateByEventIdAndNumberAndPassword(
-                registration.getNumber(),
-                registration.getPassword(),
-                registration.getUsername(),
-                registration.getEmail(),
-                registration.getPhone()
-        ).orElseThrow(() -> BadRequestException.builder()
-                .message(String.format("This registration: %s was not possible to update the registration", registrationUpdateRequestDto))
-                .build());
-
+        Registration updatedRegistration = registrationRepository.updateByEventIdAndNumberAndPassword(registration);
 
         log.info("Registration successfully updated. Updated details: {}", updatedRegistration);
 
@@ -132,6 +123,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
     }
 
+    @Override
     @Transactional
     public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long id) {
         log.info("Starting method updateRegistrationStatus with id: {}, status: {}", id, request.getStatus());
@@ -156,12 +148,14 @@ public class RegistrationServiceImpl implements RegistrationService {
         return registrationMapper.toFullResponseDto(registration);
     }
 
+    @Override
     public List<RegistrationFullResponseDto> getRegistrationsByStatusAndEventId(Set<Status> statuses, Long eventId) {
         return registrationRepository.findByStatusInAndEventIdOrderByCreatedDateTimeAsc(statuses, eventId).stream()
                 .map(registrationMapper::toFullResponseDto)
                 .collect(Collectors.toList());
     }
 
+    @Override
     public RegistrationStatusCountResponseDto getStatusCounts(Long eventId) {
         List<Object[]> results = registrationRepository.countByEventIdGroupByStatus(eventId);
         RegistrationStatusCountResponseDto statusCounts = new RegistrationStatusCountResponseDto(1L, new HashMap<>());

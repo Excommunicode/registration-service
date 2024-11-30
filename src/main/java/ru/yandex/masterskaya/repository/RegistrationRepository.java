@@ -13,43 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public interface RegistrationRepository extends JpaRepository<Registration, Long> {
-
-    @Query(nativeQuery = true, value = """
-            WITH inserted AS (
-                INSERT INTO registrations (username, email, phone, event_id, password, number, created_date_time, status)
-                VALUES (:#{#registration.username},
-                        :#{#registration.email},
-                        :#{#registration.phone},
-                        :#{#registration.eventId},
-                        :#{#registration.password},
-                        (SELECT COALESCE(MAX(CAST(r.number AS INTEGER)), 0) + 1
-                         FROM registrations r
-                         WHERE r.event_id = :eventId),
-                        NOW(),
-                        'PENDING')
-                RETURNING *
-            )
-            SELECT * FROM inserted
-            """)
-    Registration saveAndReturn(Registration registration, Long eventId);
-
-
-    @Query(nativeQuery = true, value = """
-            UPDATE registrations
-            SET username = :username,
-                email    = :email,
-                phone    = :phone
-            WHERE number = :number
-              AND password = :password
-            RETURNING *
-            """)
-    Optional<Registration> updateByEventIdAndNumberAndPassword(
-            int number,
-            String password,
-            String username,
-            String email,
-            String phone);
+public interface RegistrationRepository extends JpaRepository<Registration, Long>, RegistrationCustomRepository {
 
     @Query("""
             SELECT new ru.yandex.masterskaya.dto.RegistrationCreateRequestDto(
