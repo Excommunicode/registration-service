@@ -73,7 +73,7 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
             WHERE number = :number
             AND password = :password
             """)
-    int deleteByPhoneAndPassword(int number, String password);
+    void deleteByPhoneAndPassword(int number, String password);
 
     Optional<Registration> findByNumberAndPassword(int number, String password);
 

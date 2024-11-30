@@ -103,13 +103,13 @@ public class RegistrationServiceImpl implements RegistrationService {
     public List<RegistrationCreateRequestDto> getAllByEventId(Long eventId, Pageable pageable) {
         log.info("Starting method getAllByEventId for eventId: {} with pageable: {}", eventId, pageable);
 
-        List<RegistrationProjection> allByEventId = registrationRepository.findAllByEventId(eventId, pageable);
+        List<RegistrationProjection> allEventById = registrationRepository.findAllByEventId(eventId, pageable);
 
-        if (allByEventId == null || allByEventId.isEmpty()) {
+        if (allEventById == null || allEventById.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<RegistrationCreateRequestDto> dtoList = registrationMapper.toListDto(allByEventId);
+        List<RegistrationCreateRequestDto> dtoList = registrationMapper.toListDto(allEventById);
         log.info("Mapped registrations to DTO list. Total count: {}", dtoList.size());
 
         return dtoList;
