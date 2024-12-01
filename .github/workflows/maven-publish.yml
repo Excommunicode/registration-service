@@ -14,21 +14,12 @@ jobs:
       packages: write
 
     steps:
-      - name: Install Amazon Corretto JDK 21
-        run: |
-          sudo apt update
-          sudo apt install -y wget
-          wget -O corretto.tar.gz https://corretto.aws/downloads/latest/amazon-corretto-21-x64-linux-jdk.tar.gz
-          sudo tar -xzf corretto.tar.gz -C /usr/local
-          export JAVA_HOME=/usr/local/amazon-corretto-21
-          export PATH=$JAVA_HOME/bin:$PATH
-
       - uses: actions/checkout@v4
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'amazoncorretto'
+          distribution: 'corretto'
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
