@@ -4,7 +4,6 @@ on: push
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,61 +31,6 @@ jobs:
       - name: Package application with Maven
         run: mvn -B package --file pom.xml
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Set up Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
-      - name: Build Docker images
-        run: docker-compose build
-
-      - name: Start services with docker-compose
-        run: docker-compose up -d
-
-      - name: Wait for services to be ready
-        shell: bash {0}
-        run: |
-          echo "Waiting for services to be ready..."
-          for i in {1..30}; do
-            STATUS_FEATURE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/actuator/health || echo "000")
-            STATUS_REGISTRATION=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8081/actuator/health || echo "000")
-            if [ "$STATUS_FEATURE" -eq 200 ] && [ "$STATUS_REGISTRATION" -eq 200 ]; then
-              echo "Services are up and running."
-              break
-            else
-              echo "Services are not ready yet. Retrying in 5 seconds..."
-              sleep 5
-            fi
-            if [ "$i" -eq 30 ]; then
-              echo "Services did not become ready in time."
-              exit 1
-            fi
-          done
-
-
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install Newman
-        run: npm install -g newman
-
-      - name: Run Postman tests for Feature Status
-        run: |
-          newman run postman/feature-status.postman_collection.json \
-          --reporters cli,json \
-          --reporter-json-export results-feature-status.json
-
-      - name: Run Postman tests for Registration Service
-        run: |
-          newman run postman/registration-service.postman_collection.json \
-          --reporters cli,json \
-          --reporter-json-export results-registration-service.json
-
       - name: Publish results (optional)
         run: |
           echo "Feature Status Results:"
@@ -96,3 +40,37 @@ jobs:
 
       - name: Stop services
         run: docker-compose down
+
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        env:
+          GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          fetch-depth: 0
+
+      - name: Install ssh keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_ed25519_work
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+          docker context create remote --docker host=ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker compose
+        env:
+          IMAGE_REF: ${{ steps.meta.outputs.tags }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          docker-compose --context remote -f docker-compose.yml up -d
