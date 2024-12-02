@@ -23,8 +23,9 @@ jobs:
 
       - name: Check and Build application
         run: |
-          chmod a+x ./tests/.github/workflows/build.sh
-          ./tests/.github/workflows/build.sh
+          chmod a+x .github/workflows/build.sh
+          ./.github/workflows/build.sh
+
 
       - name: Build and test with Maven
         run: mvn -B test --file pom.xml
