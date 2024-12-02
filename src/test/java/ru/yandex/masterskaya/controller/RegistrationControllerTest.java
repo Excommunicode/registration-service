@@ -36,7 +36,9 @@ class RegistrationControllerTest {
     private RegistrationService registrationService;
 
     private final ObjectMapper objectMapper;
+
     private final MockMvc mockMvc;
+
 
     private static final RegistrationCreateRequestDto registration = RegistrationCreateRequestDto.builder()
             .id(1L)

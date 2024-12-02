@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "New Request",
+			"name": "Add registration",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -35,7 +35,7 @@
 			"response": []
 		},
 		{
-			"name": "New Request",
+			"name": "Patch registration",
 			"request": {
 				"method": "PATCH",
 				"header": [],
@@ -63,7 +63,7 @@
 			"response": []
 		},
 		{
-			"name": "New Request",
+			"name": "Get registration",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -82,7 +82,7 @@
 			"response": []
 		},
 		{
-			"name": "New Request",
+			"name": "Get all by id registrations",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -107,7 +107,7 @@
 			"response": []
 		},
 		{
-			"name": "New Request",
+			"name": "Delete by password and number registration",
 			"request": {
 				"method": "DELETE",
 				"header": [],
@@ -133,6 +133,16 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "number",
+			"value": ""
 		}
 	]
 }

@@ -90,7 +90,7 @@ public class RegistrationController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public RegistrationCreateRequestDto getRegistration(@PathVariable @Parameter(description = "ID регистрации.") Long id) {
-        log.info("Endpoint /registrations/{id} GET started. Received request to get registration with id:{}", id);
+        log.info("Endpoint /registrations/{id} GET started. Received request to get registration with id: {}", id);
         return registrationService.getRegistration(id);
     }
 
