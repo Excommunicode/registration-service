@@ -29,6 +29,9 @@ jobs:
       - name: Build and test with Maven
         run: mvn -B test --file pom.xml
 
+      - name: Package application with Maven
+        run: mvn -B package --file pom.xml
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -37,24 +40,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
+      - name: Build Docker images
+        run: docker-compose build
+
       - name: Start services with docker-compose
         run: docker-compose up -d
 
       - name: Wait for services to be ready
         run: |
           echo "Waiting for services to be ready..."
-          # Замените URL и порты на соответствующие вашим сервисам
           for i in {1..30}; do
             STATUS_FEATURE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/actuator/health)
             STATUS_REGISTRATION=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8081/actuator/health)
-            if [ $STATUS_FEATURE -eq 200 ] && [ $STATUS_REGISTRATION -eq 200 ]; then
+            if [ "$STATUS_FEATURE" -eq 200 ] && [ "$STATUS_REGISTRATION" -eq 200 ]; then
               echo "Services are up and running."
               break
             else
               echo "Services are not ready yet. Retrying in 5 seconds..."
               sleep 5
             fi
-            if [ $i -eq 30 ]; then
+            if [ "$i" -eq 30 ]; then
               echo "Services did not become ready in time."
               exit 1
             fi
