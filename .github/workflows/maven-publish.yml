@@ -31,15 +31,6 @@ jobs:
       - name: Package application with Maven
         run: mvn -B package --file pom.xml
 
-      - name: Publish results (optional)
-        run: |
-          echo "Feature Status Results:"
-          cat results-feature-status.json
-          echo "Registration Service Results:"
-          cat results-registration-service.json
-
-      - name: Stop services
-        run: docker-compose down
 
       - name: Checkout
         uses: actions/checkout@v4.1.1
