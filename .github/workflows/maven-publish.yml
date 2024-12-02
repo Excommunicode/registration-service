@@ -21,6 +21,11 @@ jobs:
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
+      - name: Check and Build application
+        run: |
+          chmod a+x ./tests/.github/workflows/build.sh
+          ./tests/.github/workflows/build.sh
+
       - name: Build and test with Maven
         run: mvn -B test --file pom.xml
 
@@ -50,3 +55,5 @@ jobs:
           cat results-feature-status.json
           echo "Registration Service Results:"
           cat results-registration-service.json
+          
+      
