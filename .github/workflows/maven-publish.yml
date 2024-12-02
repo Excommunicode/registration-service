@@ -26,7 +26,6 @@ jobs:
           chmod a+x .github/workflows/build.sh
           ./.github/workflows/build.sh
 
-
       - name: Build and test with Maven
         run: mvn -B test --file pom.xml
 
@@ -37,6 +36,14 @@ jobs:
 
       - name: Install Newman
         run: npm install -g newman
+
+      - name: Start Database
+        run: |
+          docker-compose -f docker-compose.yml up -d
+
+      - name: Wait for Database to be ready
+        run: |
+          until docker exec test-db pg_isready -U testuser; do sleep 2; done
 
       - name: Run Postman tests for Feature Status
         run: |
@@ -56,5 +63,7 @@ jobs:
           cat results-feature-status.json
           echo "Registration Service Results:"
           cat results-registration-service.json
-          
-      
+
+      - name: Stop Database
+        run: |
+          docker-compose -f docker-compose.yml down

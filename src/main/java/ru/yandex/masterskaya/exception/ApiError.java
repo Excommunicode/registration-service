@@ -10,7 +10,6 @@ import java.util.List;
 
 import static ru.yandex.masterskaya.constant.Constant.DATA_TIME_FORMATTER;
 
-
 @Getter
 @Builder
 @ToString
