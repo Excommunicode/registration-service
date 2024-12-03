@@ -56,7 +56,7 @@ public class RegistrationController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RegistrationResponseDTO addRegistration(
-            @Valid @RequestBody @Parameter(description = "Данные для регистрации.") RegistrationCreateRequestDto eventRegistrationResponseDTO) {
+            @Valid @RequestBody @Parameter(description = "Данные для регистрации") RegistrationCreateRequestDto eventRegistrationResponseDTO) {
         log.info("Endpoint /registrations POST started. Received request to create registration {}", eventRegistrationResponseDTO);
         return registrationService.addRegistration(eventRegistrationResponseDTO);
     }
