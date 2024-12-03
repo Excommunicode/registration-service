@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -23,9 +22,8 @@ jobs:
       uses: easingthemes/ssh-deploy@v2.1.5
       with:
         SSH_PRIVATE_KEY: ${{ secrets.MY_KEY }}
-        ARGS: "-avzr --delete"
+        ARGS: "-avzr --delete --exclude=*.log"
         SOURCE: "target/"
-        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-        REMOTE_USER: ${{ secrets.REMOTE_USER }}
-        TARGET: ${{ secrets.REMOTE_TARGET }}
-        EXCLUDE: "*.log"
+        REMOTE_HOST: '51.250.40.135'
+        REMOTE_USER: 'java-team3-1'
+        TARGET: '/home/java-team3-1/faruh'
