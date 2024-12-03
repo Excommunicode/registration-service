@@ -81,7 +81,7 @@ public class RegistrationController {
 
     @Operation(
             summary = "Получить регистрацию",
-            description = "Возвращает данные регистрации по указанному ID.",
+            description = "Возвращает данные регистрации по указанному ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Регистрация найдена."),
                     @ApiResponse(responseCode = "404", description = "Регистрация не найдена.")
