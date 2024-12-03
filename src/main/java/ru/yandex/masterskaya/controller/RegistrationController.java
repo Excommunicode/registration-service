@@ -47,7 +47,7 @@ public class RegistrationController {
 
     @Operation(
             summary = "Добавить новую регистрацию",
-            description = "Создает новую регистрацию на мероприятие с указанными данными.",
+            description = "Создает новую регистрацию на мероприятие с указанными данными",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Регистрация успешно создана."),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации данных.")
