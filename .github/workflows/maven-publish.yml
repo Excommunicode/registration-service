@@ -1,7 +1,6 @@
 name: Deploy
 
-on:
-  workflow_dispatch
+on: push
 
 env:
   SERVER_HOST: 51.250.40.135
