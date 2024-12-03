@@ -64,7 +64,7 @@ public class RegistrationController {
 
     @Operation(
             summary = "Обновить регистрацию",
-            description = "Обновляет существующую регистрацию с указанным ID события.",
+            description = "Обновляет существующую регистрацию с указанным ID события",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Регистрация успешно обновлена."),
                     @ApiResponse(responseCode = "404", description = "Регистрация не найдена.")
