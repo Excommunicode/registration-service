@@ -47,7 +47,7 @@ public class RegistrationController {
 
     @Operation(
             summary = "Добавить новую регистрацию",
-            description = "Создает новую регистрацию на мероприятие с указанными данными.",
+            description = "Создает новую регистрацию на мероприятие с указанными данными",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Регистрация успешно создана."),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации данных.")
@@ -56,7 +56,7 @@ public class RegistrationController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RegistrationResponseDTO addRegistration(
-            @Valid @RequestBody @Parameter(description = "Данные для регистрации.") RegistrationCreateRequestDto eventRegistrationResponseDTO) {
+            @Valid @RequestBody @Parameter(description = "Данные для регистрации") RegistrationCreateRequestDto eventRegistrationResponseDTO) {
         log.info("Endpoint /registrations POST started. Received request to create registration {}", eventRegistrationResponseDTO);
         return registrationService.addRegistration(eventRegistrationResponseDTO);
     }
