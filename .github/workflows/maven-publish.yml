@@ -27,6 +27,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             docker pull faruh213213/registration-service:latest
             docker stop registration-service || true
@@ -37,3 +38,4 @@ jobs:
             docker stop registration-service-db || true
             docker rm registration-service-db || true
             docker run -d --name registration-service-db -p 5432:5432 faruh213213/registration-service-db:latest
+
