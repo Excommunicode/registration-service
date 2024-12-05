@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.yandex.masterskaya.model.Status;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
