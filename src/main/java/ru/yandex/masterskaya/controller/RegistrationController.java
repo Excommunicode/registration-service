@@ -110,7 +110,7 @@ public class RegistrationController {
             @RequestParam @Parameter(description = "ID мероприятия.") Long eventId,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
             @Parameter(description = "Параметры пагинации.") Pageable pageable) {
-        log.info("Endpoint /registrations GET started. Received request to get registration with eventId:{}", eventId);
+        log.info("Endpoint /registrations GET started. Received request to get registration with eventId: {}", eventId);
         return registrationService.getAllByEventId(eventId, pageable);
     }
 
