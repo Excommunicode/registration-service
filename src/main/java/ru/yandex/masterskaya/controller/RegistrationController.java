@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.masterskaya.constant.Constant;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
@@ -30,7 +32,7 @@ import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
 import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.model.Status;
-import ru.yandex.masterskaya.service.api.RegistrationService;
+import ru.yandex.masterskaya.service.RegistrationService;
 
 import java.util.List;
 import java.util.Set;
@@ -124,16 +126,19 @@ public class RegistrationController {
     )
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteByPhoneAndPassword(@Valid @RequestBody RegistrationDeleteRequestDto someDto) {
+    public void deleteByPhoneAndPassword(@Valid @RequestBody RegistrationDeleteRequestDto someDto, @RequestParam Long eventId) {
         log.info("Endpoint /registrations DELETE started. Received request to Delete registration with same parameters");
-        registrationService.deleteByPhoneNumberAndPassword(someDto);
+        registrationService.deleteByPhoneNumberAndPassword(eventId, someDto);
     }
 
     @PatchMapping("/{id}/status")
     @ResponseStatus(HttpStatus.OK)
-    public RegistrationFullResponseDto updateStatus(@PathVariable @Min(1) Long id, @RequestBody RegistrationStatusUpdateRequestDto request) {
+    public RegistrationFullResponseDto updateStatus(@PathVariable @Min(1) Long id,
+                                                    @RequestBody RegistrationStatusUpdateRequestDto request,
+                                                    @RequestHeader(Constant.X_USER_ID) Long userId) {
+
         log.info("Updating status for registration with id: {}, status: {}", id, request.getStatus());
-        return registrationService.updateRegistrationStatus(request, id);
+        return registrationService.updateRegistrationStatus(request, userId, id);
     }
 
     @GetMapping("/status")

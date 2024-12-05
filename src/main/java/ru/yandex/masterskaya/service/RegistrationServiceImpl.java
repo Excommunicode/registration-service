@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.masterskaya.api.EventClient;
+import ru.yandex.masterskaya.dto.EventDto;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
@@ -21,13 +23,11 @@ import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
 import ru.yandex.masterskaya.model.Status;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
-import ru.yandex.masterskaya.service.api.RegistrationService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,20 +38,24 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ, propagation = Propagation.REQUIRED)
 public class RegistrationServiceImpl implements RegistrationService {
 
+    private final EventPublisherService eventPublisherService;
     private final RegistrationRepository registrationRepository;
     private final RegistrationMapper registrationMapper;
-
+    private final EventClient eventClient;
 
     @Override
     @Transactional
     public RegistrationResponseDTO addRegistration(RegistrationCreateRequestDto registrationCreateRequestDto) {
         log.info("Starting method addRegistration. Received registrationCreateRequestDto: {}", registrationCreateRequestDto);
 
+        eventClient.getEventById(registrationCreateRequestDto.getEventId()).orElseThrow(() -> NotFoundException.builder()
+                .message(String.format("Event with id: %s not found", registrationCreateRequestDto.getEventId()))
+                .build());
+
         String password = UUID.randomUUID().toString().substring(0, 4);
 
-
         Registration registration = registrationMapper.toModel(registrationCreateRequestDto, password);
-        registration.setCreatedDateTime(LocalDateTime.now());
+
 
         Registration savedRegistration = registrationRepository.saveAndReturn(registration);
         log.info("Registration successfully saved with Number: {} and details: {}", savedRegistration.getNumber(), savedRegistration);
@@ -108,25 +112,41 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public void deleteByPhoneNumberAndPassword(RegistrationDeleteRequestDto registrationDeleteRequestDto) {
+    public void deleteByPhoneNumberAndPassword(Long eventId, RegistrationDeleteRequestDto registrationDeleteRequestDto) {
         int number = registrationDeleteRequestDto.getNumber();
         String password = registrationDeleteRequestDto.getPassword();
+
         log.info("Starting method deleteByPhoneNumberAndPassword for number: {}", number);
+
+        EventDto eventById = getEventById(eventId);
+
         Registration registration = registrationRepository.findByNumberAndPassword(number, password)
                 .orElseThrow(() -> NotFoundException.builder()
                         .message(String.format("No registrations found for deletion with number: %s and password %s", number, password))
                         .build());
+
+
+        if (eventById.getStartDateTime().isAfter(LocalDateTime.now()) &&
+                registration.getStatus().equals(Status.APPROVED)) {
+
+            throw BadRequestException.builder()
+                    .message("Event already started")
+                    .build();
+        }
         registrationRepository.deleteByPhoneAndPassword(number, password);
 
         if (registration.getStatus() == Status.APPROVED) {
-            handleWaitListUpdate(registration.getEventId());
+             eventPublisherService.publishRegistrationDeletedEvent(registration.getEventId());
         }
     }
 
+
     @Override
     @Transactional
-    public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long id) {
+    public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long userId, Long id) {
         log.info("Starting method updateRegistrationStatus with id: {}, status: {}", id, request.getStatus());
+
+
         Registration registration = registrationRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Registration not found for ID: {}", id);
@@ -165,14 +185,13 @@ public class RegistrationServiceImpl implements RegistrationService {
         return statusCounts;
     }
 
-    private void handleWaitListUpdate(Long eventId) {
-        Optional<Registration> waitListCandidate = registrationRepository
-                .findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(eventId, Status.WAITLIST);
+    private void existsEventById(Long eventId) {
 
-        waitListCandidate.ifPresent(candidate -> {
-            log.info(String.valueOf(candidate));
-            candidate.setStatus(Status.PENDING);
-            registrationRepository.save(candidate);
-        });
+    }
+
+    private EventDto getEventById(Long eventId) {
+        return eventClient.getEventById(eventId).orElseThrow(() -> NotFoundException.builder()
+                .message(String.format("Event with id: %s not found", eventId))
+                .build());
     }
 }

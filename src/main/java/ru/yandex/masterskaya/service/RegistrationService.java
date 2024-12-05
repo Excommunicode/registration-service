@@ -1,4 +1,4 @@
-package ru.yandex.masterskaya.service.api;
+package ru.yandex.masterskaya.service;
 
 import org.springframework.data.domain.Pageable;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
@@ -23,9 +23,9 @@ public interface RegistrationService {
 
     List<RegistrationCreateRequestDto> getAllByEventId(Long eventId, Pageable pageable);
 
-    void deleteByPhoneNumberAndPassword(RegistrationDeleteRequestDto someDto);
+    void deleteByPhoneNumberAndPassword(Long eventId,RegistrationDeleteRequestDto someDto);
 
-    RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long id);
+    RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long userId ,Long id);
 
     List<RegistrationFullResponseDto> getRegistrationsByStatusAndEventId(Set<Status> statuses, Long eventId);
 
