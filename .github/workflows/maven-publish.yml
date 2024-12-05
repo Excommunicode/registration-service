@@ -19,11 +19,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Pull Docker Image 1
-        run: docker pull faruh213213/faruh213213/registration-service-db
-
-      - name: Pull Docker Image 2
-        run: docker pull faruh213213/faruh213213/registration-service
+      # Шаг сборки и пуша убран. Вместо этого, ниже при деплое мы будем сразу тянуть образы из Docker Hub.
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.2.0
@@ -32,7 +28,12 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker pull your-dockerhub-username/your-image-name:latest
-            docker stop your-container-name || true
-            docker rm your-container-name || true
-            docker run -d --name your-container-name -p 80:80 your-dockerhub-username/your-image-name:latest
+            docker pull faruh213213/registration-service:latest
+            docker stop registration-service || true
+            docker rm registration-service || true
+            docker run -d --name registration-service -p 80:80 faruh213213/registration-service:latest
+
+            docker pull faruh213213/registration-service-db:latest
+            docker stop registration-service-db || true
+            docker rm registration-service-db || true
+            docker run -d --name registration-service-db -p 5432:5432 faruh213213/registration-service-db:latest
