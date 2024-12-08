@@ -7,4 +7,6 @@ public interface RegistrationCustomRepository {
     Registration saveAndReturn(Registration registration);
 
     Registration updateByEventIdAndNumberAndPassword(Registration registration);
+
+    int updateRegistrationById(Registration registration);
 }

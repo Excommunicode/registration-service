@@ -15,15 +15,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.yandex.masterskaya.constant.Constant;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
 import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
-import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
+
 import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.StatusDto;
 import ru.yandex.masterskaya.model.Status;
-import ru.yandex.masterskaya.service.api.RegistrationService;
+import ru.yandex.masterskaya.service.contract.RegistrationService;
 
 import java.util.List;
 import java.util.Map;
@@ -127,41 +129,47 @@ class RegistrationControllerTest {
     @Test
     @SneakyThrows
     void deleteByPhoneAndPassword() {
-        int phone = 1;
+        Long eventId = 1L;
         String password = "securePassword123";
         RegistrationDeleteRequestDto someDto = RegistrationDeleteRequestDto.builder()
-                .number(phone)
+                .number(1)
                 .password(password)
                 .build();
 
 
-        Mockito.doNothing().when(registrationService).deleteByPhoneNumberAndPassword(someDto);
+        Mockito.doNothing().when(registrationService).deleteByPhoneNumberAndPassword(eventId, someDto);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/registrations")
+                        .param("eventId", eventId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(someDto)))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
 
+
     }
+
 
     @Test
     @SneakyThrows
     void updateStatus() {
         RegistrationStatusUpdateRequestDto registrationStatusUpdateRequestDto =
                 new RegistrationStatusUpdateRequestDto(Status.APPROVED, null);
-        Mockito.when(registrationService.updateRegistrationStatus(Mockito.any(RegistrationStatusUpdateRequestDto.class), Mockito.anyLong()))
+
+        Mockito.when(registrationService.updateRegistrationStatus(Mockito.any(), Mockito.anyLong(), Mockito.anyLong()))
                 .thenReturn(registrationFullResponseDto);
 
         mockMvc.perform(MockMvcRequestBuilders.patch("/registrations/1/status")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(registrationStatusUpdateRequestDto)))
+                        .content(objectMapper.writeValueAsString(registrationStatusUpdateRequestDto))
+                        .header(Constant.X_USER_ID, "1"))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+
     }
 
     @Test
     @SneakyThrows
     void getByStatusAndEventId() {
-        Mockito.when(registrationService.getRegistrationsByStatusAndEventId(Mockito.any(), Mockito.anyLong()))
+        Mockito.when(registrationService.getRegistrationsByStatusAndEventId(Mockito.any(), Mockito.anyLong(), Mockito.any()))
                 .thenReturn(List.of(registrationFullResponseDto));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/registrations/status?eventId=1&statuses=APPROVED")
@@ -172,14 +180,23 @@ class RegistrationControllerTest {
     @Test
     @SneakyThrows
     void getStatusCounts() {
-
+        Map<Status, Integer> statusIntegerMap = Map.of(Status.APPROVED, 1);
         Mockito.when(registrationService.getStatusCounts(Mockito.anyLong()))
-                .thenReturn(new RegistrationStatusCountResponseDto(
-                        1L,
-                        Map.of(Status.APPROVED, 1L)));
+                .thenReturn(statusIntegerMap);
 
 
         mockMvc.perform(MockMvcRequestBuilders.get("/registrations/1/status/counts")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    void getStatusByEventIdAndUserId() {
+        Mockito.when(registrationService.getStatusByEventIdAndUserId(Mockito.anyLong(), Mockito.anyLong()))
+                .thenReturn(new StatusDto());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/registrations/{eventId}/status/{userid}", 1L, 1L)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }

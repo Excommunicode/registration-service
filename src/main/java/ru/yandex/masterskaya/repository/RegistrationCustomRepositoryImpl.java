@@ -2,6 +2,7 @@ package ru.yandex.masterskaya.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.masterskaya.exception.BadRequestException;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.Status;
@@ -22,11 +23,16 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
 
 
     @Override
+    @Transactional
     public Registration saveAndReturn(Registration registration) {
 
         String sqlQuery = """
                 INSERT INTO registrations(username, email, phone, event_id, password, number, created_date_time, status)
-                VALUES (?, ?, ?, ?, ?,(SELECT COALESCE(MAX(number), 0) + 1 FROM registrations WHERE event_id = ?), NOW(), 'PENDING')
+                VALUES (?, ?, ?, ?, ?,
+                (SELECT COALESCE(MAX(number), 0) + 1
+                FROM registrations
+                WHERE event_id = ?),
+                NOW(), 'PENDING')
                 RETURNING number, password
                 """;
 
@@ -56,6 +62,7 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
     }
 
     @Override
+    @Transactional
     public Registration updateByEventIdAndNumberAndPassword(Registration registration) {
         String sqlQuery = """
                 UPDATE registrations
@@ -89,6 +96,35 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
                     .build();
         }
         return null;
+    }
+
+    @Override
+    public int updateRegistrationById(Registration registration) {
+        int rowsUpdated = 0;
+        String sqlQuery = """
+                UPDATE registrations
+                SET status = ?,
+                    rejected_reason = CASE WHEN ? IS NOT NULL THEN ? ELSE rejected_reason END
+                WHERE id = ?
+                """;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
+
+            preparedStatement.setString(1, registration.getStatus().toString());
+            preparedStatement.setString(2, registration.getRejectionReason());
+            preparedStatement.setString(3, registration.getRejectionReason());
+            preparedStatement.setLong(4, registration.getId());
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            System.err.println(resultSet);
+        } catch (SQLException e) {
+            throw BadRequestException.builder()
+                    .message(String.format("SQL Exception: %s", e.getMessage()))
+                    .build();
+        }
+        return rowsUpdated;
+
     }
 
     private Registration mapToRegistration(ResultSet resultSet) throws SQLException {

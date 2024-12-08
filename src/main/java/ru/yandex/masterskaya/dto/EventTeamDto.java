@@ -1,16 +1,17 @@
 package ru.yandex.masterskaya.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.masterskaya.model.Status;
 
-import java.util.Map;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegistrationStatusCountResponseDto {
+@Builder(toBuilder = true)
+public class EventTeamDto {
     private Long eventId;
-    private Map<Status, Long> statusCounts;
+    private List<ManagerDto> personnel;
 }
