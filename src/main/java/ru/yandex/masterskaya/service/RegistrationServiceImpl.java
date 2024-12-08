@@ -8,26 +8,34 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.masterskaya.api.EventClient;
+import ru.yandex.masterskaya.api.UserClient;
 import ru.yandex.masterskaya.dto.EventDto;
+import ru.yandex.masterskaya.dto.EventTeamDto;
+import ru.yandex.masterskaya.dto.ManagerDto;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
 import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
-import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
 import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.StatusDto;
+import ru.yandex.masterskaya.dto.UserResponseDTO;
 import ru.yandex.masterskaya.exception.BadRequestException;
 import ru.yandex.masterskaya.exception.NotFoundException;
 import ru.yandex.masterskaya.mapper.RegistrationMapper;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
 import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.model.StatusProjection;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
+import ru.yandex.masterskaya.service.contract.RegistrationService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,15 +50,16 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final RegistrationRepository registrationRepository;
     private final RegistrationMapper registrationMapper;
     private final EventClient eventClient;
+    private final UserClient userClient;
 
     @Override
     @Transactional
     public RegistrationResponseDTO addRegistration(RegistrationCreateRequestDto registrationCreateRequestDto) {
         log.info("Starting method addRegistration. Received registrationCreateRequestDto: {}", registrationCreateRequestDto);
 
-        eventClient.getEventById(registrationCreateRequestDto.getEventId()).orElseThrow(() -> NotFoundException.builder()
-                .message(String.format("Event with id: %s not found", registrationCreateRequestDto.getEventId()))
-                .build());
+        eventClient.getEventById(registrationCreateRequestDto.getEventId());
+        userClient.findByEmail(registrationCreateRequestDto.getEmail());
+
 
         String password = UUID.randomUUID().toString().substring(0, 4);
 
@@ -100,7 +109,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         List<RegistrationProjection> allEventById = registrationRepository.findAllByEventId(eventId, pageable);
 
-        if (allEventById == null || allEventById.isEmpty()) {
+        if (Objects.isNull(allEventById) || allEventById.isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -118,7 +127,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         log.info("Starting method deleteByPhoneNumberAndPassword for number: {}", number);
 
-        EventDto eventById = getEventById(eventId);
+        EventDto eventFromEventService = eventClient.getEventById(eventId);
 
         Registration registration = registrationRepository.findByNumberAndPassword(number, password)
                 .orElseThrow(() -> NotFoundException.builder()
@@ -126,24 +135,24 @@ public class RegistrationServiceImpl implements RegistrationService {
                         .build());
 
 
-        if (eventById.getStartDateTime().isAfter(LocalDateTime.now()) &&
+        if (eventFromEventService.getStartDateTime().isAfter(LocalDateTime.now()) &&
                 registration.getStatus().equals(Status.APPROVED)) {
 
             throw BadRequestException.builder()
-                    .message("Event already started")
+                    .message("The event has already started and registration has been confirmed")
                     .build();
         }
-        registrationRepository.deleteByPhoneAndPassword(number, password);
+        registrationRepository.deleteById(registration.getId());
 
         if (registration.getStatus() == Status.APPROVED) {
-             eventPublisherService.publishRegistrationDeletedEvent(registration.getEventId());
+            eventPublisherService.publishRegistrationDeletedEvent(registration.getEventId());
         }
     }
 
-
     @Override
     @Transactional
-    public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request, Long userId, Long id) {
+    public RegistrationFullResponseDto updateRegistrationStatus(RegistrationStatusUpdateRequestDto request,
+                                                                Long userId, Long id) {
         log.info("Starting method updateRegistrationStatus with id: {}, status: {}", id, request.getStatus());
 
 
@@ -160,38 +169,77 @@ public class RegistrationServiceImpl implements RegistrationService {
                     .message("Rejection reason is required for status REJECTED")
                     .build();
         }
+        EventTeamDto eventTeam = eventClient.getEventTeam(registration.getEventId());
+        Set<Long> managerIds = eventTeam.getPersonnel().stream().map(ManagerDto::getUserId).collect(Collectors.toSet());
+        if (!managerIds.contains(userId)) {
+            throw BadRequestException.builder()
+                    .message("You don't have enough rights to change the status of the registration")
+                    .build();
+        }
+
 
         registration.setStatus(request.getStatus());
         registration.setRejectionReason(request.getRejectionReason());
-        registrationRepository.save(registration);
+        registrationRepository.updateRegistrationById(registration);
 
         return registrationMapper.toFullResponseDto(registration);
     }
 
     @Override
-    public List<RegistrationFullResponseDto> getRegistrationsByStatusAndEventId(Set<Status> statuses, Long eventId) {
-        return registrationRepository.findByStatusInAndEventIdOrderByCreatedDateTimeAsc(statuses, eventId).stream()
-                .map(registrationMapper::toFullResponseDto)
-                .collect(Collectors.toList());
+    public List<RegistrationFullResponseDto> getRegistrationsByStatusAndEventId(Set<Status> statuses, Long eventId, Pageable pageable) {
+        log.info("Service Method getRegistrationsByStatusAndEventId called with statuses: {}, eventId: {}, pageable: {}", statuses, eventId, pageable);
+
+        List<Registration> registrations = registrationRepository.findByStatusInAndEventId(statuses, eventId, pageable);
+        if (registrations == null || registrations.isEmpty()) {
+            log.info("No registrations found for eventId: {} with statuses: {}", eventId, statuses);
+            return Collections.emptyList();
+        }
+
+        List<RegistrationFullResponseDto> responses = registrationMapper.toFullResponseDtoList(registrations);
+        log.info("Retrieved {} registrations for eventId: {}", responses.size(), eventId);
+        return responses;
     }
 
     @Override
-    public RegistrationStatusCountResponseDto getStatusCounts(Long eventId) {
-        List<Object[]> results = registrationRepository.countByEventIdGroupByStatus(eventId);
-        RegistrationStatusCountResponseDto statusCounts = new RegistrationStatusCountResponseDto(1L, new HashMap<>());
-        for (Object[] result : results) {
-            statusCounts.getStatusCounts().put((Status) result[0], (Long) result[1]);
+    public Map<Status, Integer> getStatusCounts(Long eventId) {
+        log.info("Service Method getStatusCounts called for eventId: {}", eventId);
+
+        Map<Status, Integer> statusCount = new HashMap<>();
+        List<StatusProjection> statusProjections = registrationRepository.countByEventIdGroupByStatus(eventId);
+
+        if (statusProjections == null || statusProjections.isEmpty()) {
+            log.info("No status counts found for eventId: {}", eventId);
+            return Collections.emptyMap();
         }
-        return statusCounts;
+
+        for (StatusProjection statusProjection : statusProjections) {
+            statusCount.put(statusProjection.getStatus(), statusProjection.getCount());
+            log.debug("Status: {}, Count: {}", statusProjection.getStatus(), statusProjection.getCount());
+        }
+
+        log.info("Status counts for eventId {}: {}", eventId, statusCount);
+        return statusCount;
     }
 
-    private void existsEventById(Long eventId) {
+    @Override
+    public StatusDto getStatusByEventIdAndUserId(Long eventId, Long userId) {
+        log.info("Service Method getStatusByEventIdAndUserId called with eventId: {}, userId: {}", eventId, userId);
 
+        UserResponseDTO user = userClient.findById(userId);
+        log.debug("Retrieved user details: {}", user);
+
+        return registrationRepository.findByEventIdAndEmail(eventId, user.getEmail())
+                .map(registration -> {
+                    log.info("Found registration status: {} for userId: {} and eventId: {}", registration.getStatus(), userId, eventId);
+                    return new StatusDto(registration.getStatus());
+                })
+                .orElseThrow(() -> {
+                    String message = String.format("User with id: %s is not registered for event with id: %s", userId, eventId);
+                    log.warn(message);
+                    return NotFoundException.builder()
+                            .message(message)
+                            .build();
+                });
     }
 
-    private EventDto getEventById(Long eventId) {
-        return eventClient.getEventById(eventId).orElseThrow(() -> NotFoundException.builder()
-                .message(String.format("Event with id: %s not found", eventId))
-                .build());
-    }
 }

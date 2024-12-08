@@ -1,16 +1,18 @@
 package ru.yandex.masterskaya.api;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import ru.yandex.masterskaya.config.FeignConfig;
 import ru.yandex.masterskaya.dto.EventDto;
+import ru.yandex.masterskaya.dto.EventTeamDto;
 
-import java.util.Optional;
-
-@FeignClient(name = "event-service", url = "${event-service.url}")
+@FeignClient(name = "event-service", url = "${event-service.url}", configuration = FeignConfig.class)
 public interface EventClient {
 
-    @RequestMapping(method = RequestMethod.GET, value = "/events/{id}", consumes = "application/json")
-    Optional<EventDto> getEventById(@PathVariable Long id);
+    @GetMapping("/events/{id}")
+    EventDto getEventById(@PathVariable Long id);
+
+    @GetMapping("/managers/{eventId}")
+    EventTeamDto getEventTeam(@PathVariable Long eventId);
 }

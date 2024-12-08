@@ -10,7 +10,6 @@ import ru.yandex.masterskaya.model.Status;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class RegistrationStatusUpdateRequestDto {
+public class StatusDto {
     private Status status;
-    private String rejectionReason;
 }

@@ -55,7 +55,7 @@ public class Registration implements Serializable {
     @Column(name = "rejected_reason")
     private String rejectionReason;
 
-    @Column(name = "created_date_time")
+    @Column(name = "created_date_time", nullable = false)
     private LocalDateTime createdDateTime;
 
     @Override
@@ -69,5 +69,21 @@ public class Registration implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, username, email, phone, eventId, number, password, status, rejectionReason, createdDateTime);
+    }
+
+    @Override
+    public String toString() {
+        return "Registration{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                ", eventId=" + eventId +
+                ", number=" + number +
+                ", password='" + password + '\'' +
+                ", status=" + status +
+                ", rejectionReason='" + rejectionReason + '\'' +
+                ", createdDateTime=" + createdDateTime +
+                '}';
     }
 }

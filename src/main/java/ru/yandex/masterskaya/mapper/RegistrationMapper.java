@@ -25,4 +25,6 @@ public interface RegistrationMapper {
     List<RegistrationCreateRequestDto> toListDto(List<RegistrationProjection> registrationProjectionList);
 
     RegistrationFullResponseDto toFullResponseDto(Registration registration);
+
+    List<RegistrationFullResponseDto> toFullResponseDtoList(List<Registration> registrations);
 }

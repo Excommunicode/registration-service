@@ -2,6 +2,9 @@ package ru.yandex.masterskaya.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,13 +31,14 @@ import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationDeleteRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
 import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
-import ru.yandex.masterskaya.dto.RegistrationStatusCountResponseDto;
 import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
+import ru.yandex.masterskaya.dto.StatusDto;
 import ru.yandex.masterskaya.model.Status;
-import ru.yandex.masterskaya.service.RegistrationService;
+import ru.yandex.masterskaya.service.contract.RegistrationService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -49,10 +53,23 @@ public class RegistrationController {
 
     @Operation(
             summary = "Добавить новую регистрацию",
-            description = "Создает новую регистрацию на мероприятие с указанными данными",
+            description = "Создает новую регистрацию на мероприятие с указанными данными.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Данные для создания регистрации",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RegistrationCreateRequestDto.class))
+            ),
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Регистрация успешно создана."),
-                    @ApiResponse(responseCode = "400", description = "Ошибка валидации данных.")
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Регистрация успешно создана.",
+                            content = @Content(schema = @Schema(implementation = RegistrationResponseDTO.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Ошибка валидации данных.",
+                            content = @Content
+                    )
             }
     )
     @PostMapping
@@ -63,45 +80,114 @@ public class RegistrationController {
         return registrationService.addRegistration(eventRegistrationResponseDTO);
     }
 
-
     @Operation(
             summary = "Обновить регистрацию",
             description = "Обновляет существующую регистрацию с указанным ID события.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Обновленные данные регистрации",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RegistrationUpdateRequestDto.class))
+            ),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Регистрация успешно обновлена."),
-                    @ApiResponse(responseCode = "404", description = "Регистрация не найдена.")
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Регистрация успешно обновлена.",
+                            content = @Content(schema = @Schema(implementation = RegistrationUpdateRequestDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Регистрация не найдена.",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Ошибка валидации данных.",
+                            content = @Content
+                    )
             }
     )
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public RegistrationUpdateRequestDto updateRegistration(@Valid @RequestBody @Parameter(description = "Обновленные данные регистрации.")
-                                                           RegistrationUpdateRequestDto eventRegistrationDto) {
+    public RegistrationUpdateRequestDto updateRegistration(
+            @Valid @RequestBody @Parameter(description = "Обновленные данные регистрации.") RegistrationUpdateRequestDto eventRegistrationDto) {
         log.info("Endpoint /registrations PATCH started. Received request to update registration {} ", eventRegistrationDto);
         return registrationService.updateRegistration(eventRegistrationDto);
     }
 
-
     @Operation(
             summary = "Получить регистрацию",
             description = "Возвращает данные регистрации по указанному ID.",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "ID регистрации.",
+                            required = true,
+                            example = "1",
+                            in = ParameterIn.PATH
+                    )
+            },
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Регистрация найдена."),
-                    @ApiResponse(responseCode = "404", description = "Регистрация не найдена.")
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Регистрация найдена.",
+                            content = @Content(schema = @Schema(implementation = RegistrationCreateRequestDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Регистрация не найдена.",
+                            content = @Content
+                    )
             }
     )
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RegistrationCreateRequestDto getRegistration(@PathVariable @Parameter(description = "ID регистрации.") Long id) {
+    public RegistrationCreateRequestDto getRegistration(
+            @PathVariable @Parameter(description = "ID регистрации.") Long id) {
         log.info("Endpoint /registrations/{id} GET started. Received request to get registration with id: {}", id);
         return registrationService.getRegistration(id);
     }
 
-
     @Operation(
             summary = "Получить все регистрации по ID мероприятия",
             description = "Возвращает список всех регистраций для указанного мероприятия с пагинацией.",
+            parameters = {
+                    @Parameter(
+                            name = "eventId",
+                            description = "ID мероприятия.",
+                            required = true,
+                            example = "10",
+                            in = ParameterIn.QUERY
+                    ),
+                    @Parameter(
+                            name = "page",
+                            description = "Номер страницы для пагинации.",
+                            example = "0",
+                            in = ParameterIn.QUERY
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Размер страницы для пагинации.",
+                            example = "20",
+                            in = ParameterIn.QUERY
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Параметры сортировки.",
+                            example = "id,desc",
+                            in = ParameterIn.QUERY
+                    )
+            },
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Регистрации успешно получены.")
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Регистрации успешно получены.",
+                            content = @Content(schema = @Schema(implementation = RegistrationCreateRequestDto.class, type = "array"))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Неверные входные параметры.",
+                            content = @Content
+                    )
             }
     )
     @GetMapping
@@ -110,51 +196,248 @@ public class RegistrationController {
             @RequestParam @Parameter(description = "ID мероприятия.") Long eventId,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
             @Parameter(description = "Параметры пагинации.") Pageable pageable) {
-        log.info("Endpoint /registrations GET started. Received request to get registration with eventId: {}", eventId);
+        log.info("Endpoint /registrations GET started. Received request to get registrations with eventId: {}", eventId);
         return registrationService.getAllByEventId(eventId, pageable);
     }
-
 
     @Operation(
             summary = "Удалить регистрацию",
             description = "Удаляет регистрацию на мероприятие, используя номер телефона и пароль.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Данные для удаления регистрации",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RegistrationDeleteRequestDto.class))
+            ),
+            parameters = {
+                    @Parameter(
+                            name = "eventId",
+                            description = "ID мероприятия.",
+                            required = true,
+                            example = "10",
+                            in = ParameterIn.QUERY
+                    )
+            },
             responses = {
-                    @ApiResponse(responseCode = "204", description = "Регистрация успешно удалена."),
-                    @ApiResponse(responseCode = "400", description = "Ошибка валидации данных."),
-                    @ApiResponse(responseCode = "404", description = "Регистрация не найдена.")
+                    @ApiResponse(
+                            responseCode = "204",
+                            description = "Регистрация успешно удалена.",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Ошибка валидации данных.",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Регистрация не найдена.",
+                            content = @Content
+                    )
             }
     )
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteByPhoneAndPassword(@Valid @RequestBody RegistrationDeleteRequestDto someDto, @RequestParam Long eventId) {
-        log.info("Endpoint /registrations DELETE started. Received request to Delete registration with same parameters");
+    public void deleteByPhoneAndPassword(
+            @Valid @RequestBody RegistrationDeleteRequestDto someDto,
+            @RequestParam @Parameter(description = "ID мероприятия.") Long eventId) {
+        log.info("Endpoint /registrations DELETE started. Received request to delete registration with eventId: {}", eventId);
         registrationService.deleteByPhoneNumberAndPassword(eventId, someDto);
     }
 
+
+
+
+    @Operation(
+            summary = "Обновить статус регистрации",
+            description = "Позволяет обновить статус регистрации по ее идентификатору.",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Идентификатор регистрации",
+                            required = true,
+                            example = "1",
+                            in = ParameterIn.PATH
+                    ),
+                    @Parameter(
+                            name = Constant.X_USER_ID,
+                            description = "Идентификатор пользователя",
+                            required = true,
+                            example = "123",
+                            in = ParameterIn.HEADER
+                    )
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Объект запроса для обновления статуса",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RegistrationStatusUpdateRequestDto.class))
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Статус успешно обновлен",
+                            content = @Content(schema = @Schema(implementation = RegistrationFullResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Неверные входные данные",
+                            content = @Content
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Регистрация не найдена",
+                            content = @Content
+                    )
+            }
+    )
     @PatchMapping("/{id}/status")
     @ResponseStatus(HttpStatus.OK)
-    public RegistrationFullResponseDto updateStatus(@PathVariable @Min(1) Long id,
-                                                    @RequestBody RegistrationStatusUpdateRequestDto request,
-                                                    @RequestHeader(Constant.X_USER_ID) Long userId) {
-
-        log.info("Updating status for registration with id: {}, status: {}", id, request.getStatus());
+    public RegistrationFullResponseDto updateStatus(
+            @PathVariable @Min(1) Long id,
+            @RequestBody RegistrationStatusUpdateRequestDto request,
+            @RequestHeader(Constant.X_USER_ID) Long userId) {
+        log.info("Endpoint /registrations/{id}/status PATCH started. Received request to update status registration" +
+                " with id: {} and RegistrationStatusUpdateRequestDto: {} and userId: {}", id, request, userId);
         return registrationService.updateRegistrationStatus(request, userId, id);
     }
 
+
+    @Operation(
+            summary = "Получить регистрации по статусам и идентификатору события",
+            description = "Возвращает список регистраций, соответствующих заданным статусам и идентификатору события.",
+            parameters = {
+                    @Parameter(
+                            name = "statuses",
+                            description = "Набор статусов для фильтрации",
+                            required = true,
+                            example = "[\"ACTIVE\", \"PENDING\"]",
+                            in = ParameterIn.QUERY
+                    ),
+                    @Parameter(
+                            name = "eventId",
+                            description = "Идентификатор события",
+                            required = true,
+                            example = "10",
+                            in = ParameterIn.QUERY
+                    ),
+                    @Parameter(
+                            name = "page",
+                            description = "Номер страницы для пагинации",
+                            example = "0",
+                            in = ParameterIn.QUERY
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Размер страницы для пагинации",
+                            example = "20",
+                            in = ParameterIn.QUERY
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Параметры сортировки",
+                            example = "createdDateTime,asc",
+                            in = ParameterIn.QUERY
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Список регистраций успешно получен",
+                            content = @Content(schema = @Schema(implementation = RegistrationFullResponseDto.class, type = "array"))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Неверные входные параметры",
+                            content = @Content
+                    )
+            }
+    )
     @GetMapping("/status")
     @ResponseStatus(HttpStatus.OK)
     public List<RegistrationFullResponseDto> getByStatusAndEventId(
             @RequestParam Set<Status> statuses,
-            @RequestParam Long eventId) {
-        log.info("Fetching registrations with statuses {} for eventId {}", statuses, eventId);
-        return registrationService.getRegistrationsByStatusAndEventId(statuses, eventId);
+            @RequestParam Long eventId,
+            @PageableDefault(sort = "createdDateTime", direction = Sort.Direction.ASC) Pageable pageable) {
+        log.info("Endpoint /registrations/status GET started. With parameters statuses: {}, eventId: {}, pageable {}",
+                statuses, eventId, pageable);
+        return registrationService.getRegistrationsByStatusAndEventId(statuses, eventId, pageable);
     }
 
+
+    @Operation(
+            summary = "Получить количество регистраций по статусам для события",
+            description = "Возвращает количество регистраций для каждого статуса по заданному идентификатору события.",
+            parameters = {
+                    @Parameter(
+                            name = "eventId",
+                            description = "Идентификатор события",
+                            required = true,
+                            example = "10",
+                            in = ParameterIn.PATH
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Количество регистраций по статусам успешно получено",
+                            content = @Content(schema = @Schema(implementation = Map.class,
+                                    description = "Карта статусов и их количества"))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Событие не найдено",
+                            content = @Content
+                    )
+            }
+    )
     @GetMapping("/{eventId}/status/counts")
     @ResponseStatus(HttpStatus.OK)
-    public RegistrationStatusCountResponseDto getStatusCounts(@PathVariable Long eventId) {
-        log.info("Fetching status counts for eventId {}", eventId);
+    public Map<Status, Integer> getStatusCounts(@PathVariable Long eventId) {
+        log.info("Endpoint /registrations/{eventId}/status/counts GET started. With parameters eventId: {}", eventId);
         return registrationService.getStatusCounts(eventId);
     }
+
+
+    @Operation(
+            summary = "Получить статус регистрации по идентификаторам события и пользователя",
+            description = "Возвращает статус регистрации для заданных идентификаторов события и пользователя.",
+            parameters = {
+                    @Parameter(
+                            name = "eventId",
+                            description = "Идентификатор события",
+                            required = true,
+                            example = "10",
+                            in = ParameterIn.PATH
+                    ),
+                    @Parameter(
+                            name = "userId",
+                            description = "Идентификатор пользователя",
+                            required = true,
+                            example = "123",
+                            in = ParameterIn.PATH
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Статус регистрации успешно получен",
+                            content = @Content(schema = @Schema(implementation = StatusDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Регистрация не найдена",
+                            content = @Content
+                    )
+            }
+    )
+    @GetMapping("/{eventId}/status/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public StatusDto getStatusByEventIdAndUserId(@PathVariable Long eventId, @PathVariable Long userId) {
+        log.info("Endpoint /{eventId}/status/{userid} GET started. " +
+                "Received request to get status with eventId: {} and userId: {}", eventId, userId);
+        return registrationService.getStatusByEventIdAndUserId(eventId, userId);
+    }
 }
+
+
+
 
