@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.yandex.masterskaya.config.FeignConfig;
 import ru.yandex.masterskaya.dto.UserResponseDTO;
 
-@FeignClient(name = "user-service", url = "${user-service.url}", configuration = FeignConfig.class)
+@FeignClient(name = "user-service:8080", configuration = FeignConfig.class)
 public interface UserClient {
 
     @GetMapping("/users/{id}")
