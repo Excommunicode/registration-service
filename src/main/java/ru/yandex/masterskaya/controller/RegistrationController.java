@@ -82,7 +82,7 @@ public class RegistrationController {
 
     @Operation(
             summary = "Обновить регистрацию",
-            description = "Обновляет существующую регистрацию с указанным ID события.",
+            description = "Обновляет существующую регистрацию с указанным ID события",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Обновленные данные регистрации",
                     required = true,
@@ -334,7 +334,7 @@ public class RegistrationController {
                     @Parameter(
                             name = "sort",
                             description = "Параметры сортировки",
-                            example = "createdDateTime,asc",
+                            example = "createdDateTime,ASC",
                             in = ParameterIn.QUERY
                     )
             },
@@ -437,7 +437,3 @@ public class RegistrationController {
         return registrationService.getStatusByEventIdAndUserId(eventId, userId);
     }
 }
-
-
-
-

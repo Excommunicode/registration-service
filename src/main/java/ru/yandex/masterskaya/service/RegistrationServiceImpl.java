@@ -57,10 +57,9 @@ public class RegistrationServiceImpl implements RegistrationService {
     public RegistrationResponseDTO addRegistration(RegistrationCreateRequestDto registrationCreateRequestDto) {
         log.info("Starting method addRegistration. Received registrationCreateRequestDto: {}", registrationCreateRequestDto);
 
-        eventClient.getEventById(registrationCreateRequestDto.getEventId());
         userClient.findByEmail(registrationCreateRequestDto.getEmail());
 
-
+        eventClient.getEventById(registrationCreateRequestDto.getEventId());
         String password = UUID.randomUUID().toString().substring(0, 4);
 
         Registration registration = registrationMapper.toModel(registrationCreateRequestDto, password);

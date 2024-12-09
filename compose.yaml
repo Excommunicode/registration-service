@@ -4,13 +4,16 @@ services:
     build: .
     image: registration-service
     ports:
-      - "8080:8080"
+      - "8088:8088"
     depends_on:
       - db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/registrationServiceDb
       - SPRING_DATASOURCE_USERNAME=Faruh
       - SPRING_DATASOURCE_PASSWORD=iamroot
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://51.250.40.135:8761/eureka/
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
 
   db:
     image: postgres:15.0-alpine
