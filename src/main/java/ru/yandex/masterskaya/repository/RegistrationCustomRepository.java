@@ -8,5 +8,5 @@ public interface RegistrationCustomRepository {
 
     Registration updateByEventIdAndNumberAndPassword(Registration registration);
 
-    int updateRegistrationById(Registration registration);
+    void updateRegistrationById(Registration registration);
 }

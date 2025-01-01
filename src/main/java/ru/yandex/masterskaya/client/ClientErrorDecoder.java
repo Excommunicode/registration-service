@@ -1,4 +1,4 @@
-package ru.yandex.masterskaya.api;
+package ru.yandex.masterskaya.client;
 
 import feign.Response;
 import feign.codec.ErrorDecoder;

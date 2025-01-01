@@ -1,16 +1,10 @@
 package ru.yandex.masterskaya.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
 @Builder(toBuilder = true)
-public class RegistrationStatusUpdateRequestDto {
-    private Status status;
-    private String rejectionReason;
+public record RegistrationStatusUpdateRequestDto(Status status,
+                                                 String rejectionReason) {
 }

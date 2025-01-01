@@ -1,15 +1,10 @@
 package ru.yandex.masterskaya.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+import java.io.Serializable;
+
 @Builder(toBuilder = true)
-public class StatusDto {
-    private Status status;
+public record StatusDto(Status status) implements Serializable {
 }

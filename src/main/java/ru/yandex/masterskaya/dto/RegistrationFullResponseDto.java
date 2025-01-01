@@ -1,27 +1,16 @@
 package ru.yandex.masterskaya.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+import java.io.Serializable;
+
 @Builder(toBuilder = true)
-public class RegistrationFullResponseDto {
-    private Long id;
-
-    private String username;
-
-    private String email;
-
-    private String phone;
-
-    private Long eventId;
-
-    private Status status;
-
-    private String rejectionReason;
+public record RegistrationFullResponseDto(Long id,
+                                          String username,
+                                          String email,
+                                          String phone,
+                                          Long eventId,
+                                          Status status,
+                                          String rejectionReason) implements Serializable {
 }

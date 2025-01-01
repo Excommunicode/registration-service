@@ -2,10 +2,9 @@ package ru.yandex.masterskaya.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.masterskaya.exception.BadRequestException;
 import ru.yandex.masterskaya.model.Registration;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -23,9 +22,7 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
 
 
     @Override
-    @Transactional
     public Registration saveAndReturn(Registration registration) {
-
         String sqlQuery = """
                 INSERT INTO registrations(username, email, phone, event_id, password, number, created_date_time, status)
                 VALUES (?, ?, ?, ?, ?,
@@ -46,6 +43,7 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
             preparedStatement.setString(5, registration.getPassword());
             preparedStatement.setLong(6, registration.getEventId());
 
+
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapToRegistrationAfterSave(resultSet);
@@ -62,7 +60,6 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
     }
 
     @Override
-    @Transactional
     public Registration updateByEventIdAndNumberAndPassword(Registration registration) {
         String sqlQuery = """
                 UPDATE registrations
@@ -99,8 +96,7 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
     }
 
     @Override
-    public int updateRegistrationById(Registration registration) {
-        int rowsUpdated = 0;
+    public void updateRegistrationById(Registration registration) {
         String sqlQuery = """
                 UPDATE registrations
                 SET status = ?,
@@ -116,15 +112,13 @@ public class RegistrationCustomRepositoryImpl implements RegistrationCustomRepos
             preparedStatement.setString(3, registration.getRejectionReason());
             preparedStatement.setLong(4, registration.getId());
 
-            ResultSet resultSet = preparedStatement.executeQuery();
-            System.err.println(resultSet);
+            preparedStatement.executeQuery();
+
         } catch (SQLException e) {
             throw BadRequestException.builder()
                     .message(String.format("SQL Exception: %s", e.getMessage()))
                     .build();
         }
-        return rowsUpdated;
-
     }
 
     private Registration mapToRegistration(ResultSet resultSet) throws SQLException {

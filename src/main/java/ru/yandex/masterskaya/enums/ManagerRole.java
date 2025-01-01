@@ -1,4 +1,4 @@
-package ru.yandex.masterskaya.dto;
+package ru.yandex.masterskaya.enums;
 
 public enum ManagerRole {
     OWNER,

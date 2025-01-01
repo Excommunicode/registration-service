@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.yandex.masterskaya.enums.Status;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

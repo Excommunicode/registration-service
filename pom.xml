@@ -13,19 +13,6 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>registration-service</name>
     <description>registration-service</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
     <properties>
         <java.version>21</java.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
@@ -33,6 +20,10 @@
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <spring-boot-starter-web.version>3.2.1</spring-boot-starter-web.version>
         <spring-cloud.version>2023.0.4</spring-cloud.version>
+        <flyway.version>9.22.2</flyway.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
+        <instancio.version>4.8.1</instancio.version>
+        <openapi.version>2.6.0</openapi.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -91,23 +82,23 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>9.22.3</version>
+            <version>${flyway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.17.3</version>
+            <version>${testcontainers.version}</version>
         </dependency>
         <dependency>
             <groupId>org.instancio</groupId>
             <artifactId>instancio-core</artifactId>
-            <version>4.8.1</version>
+            <version>${instancio.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
+            <version>${openapi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -117,7 +108,6 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -139,8 +129,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>21</source>
+                    <target>21</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.mapstruct</groupId>
@@ -163,7 +153,7 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>9.22.3</version>
+                <version>${flyway.version}</version>
             </plugin>
 
         </plugins>
