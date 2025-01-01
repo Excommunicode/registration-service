@@ -12,7 +12,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -105,7 +104,7 @@ public class RegistrationController {
                     required = true,
                     schema = @Schema(implementation = RegistrationCreateRequestDto.class)
             ) RegistrationCreateRequestDto registrationRequest) {
-        log.info("Начата обработка POST запроса на /registrations с данными: {}", registrationRequest);
+        log.info("Endpoint /registrations POST started. Received request to create registration {}", registrationRequest);
         return registrationService.addRegistration(registrationRequest);
     }
 
