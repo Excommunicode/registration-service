@@ -8,7 +8,7 @@ import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.StatusDto;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 
 import java.util.List;
 import java.util.Map;

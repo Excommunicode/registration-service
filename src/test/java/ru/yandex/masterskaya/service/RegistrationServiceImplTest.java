@@ -1,6 +1,5 @@
 package ru.yandex.masterskaya.service;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.instancio.Instancio;
 import org.instancio.Select;
@@ -18,7 +17,7 @@ import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationFullResponseDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.model.Registration;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
 import ru.yandex.masterskaya.service.contract.RegistrationService;
 
@@ -40,7 +39,7 @@ class RegistrationServiceImplTest {
 
     private final RegistrationService registrationService;
     private final RegistrationRepository registrationRepository;
-    private final EntityManager entityManager;
+
 
 
     @AfterEach
@@ -64,8 +63,8 @@ class RegistrationServiceImplTest {
 
         RegistrationUpdateRequestDto updateRegistration = registrationService.updateRegistration(eventRegistrationDto);
         assertNotNull(updateRegistration);
-        assertEquals(updateRegistration.getNumber(), registration.getNumber());
-        assertEquals(updateRegistration.getPassword(), registration.getPassword());
+        assertEquals(updateRegistration.number(), registration.getNumber());
+        assertEquals(updateRegistration.password(), registration.getPassword());
     }
 
     @Test
@@ -76,10 +75,10 @@ class RegistrationServiceImplTest {
         RegistrationCreateRequestDto registration = registrationService.getRegistration(1L);
 
 
-        assertEquals(registration1.getUsername(), registration.getUsername());
-        assertEquals(registration1.getEmail(), registration.getEmail());
-        assertEquals(registration1.getPhone(), registration.getPhone());
-        assertEquals(registration1.getEventId(), registration.getEventId());
+        assertEquals(registration1.getUsername(), registration.username());
+        assertEquals(registration1.getEmail(), registration.email());
+        assertEquals(registration1.getPhone(), registration.phone());
+        assertEquals(registration1.getEventId(), registration.eventId());
     }
 
     @Test
@@ -104,11 +103,11 @@ class RegistrationServiceImplTest {
         assertEquals(10, allByEventId.size(), "Expected 10 registrations to be returned for event ID 1");
 
         for (RegistrationCreateRequestDto dto : allByEventId) {
-            assertEquals(1L, dto.getEventId(), "Event ID should be 1 for all registrations");
+            assertEquals(1L, dto.eventId(), "Event ID should be 1 for all registrations");
         }
 
         for (int i = 0; i < allByEventId.size() - 1; i++) {
-            assertTrue(allByEventId.get(i).getId() > allByEventId.get(i + 1).getId(),
+            assertTrue(allByEventId.get(i).id() > allByEventId.get(i + 1).id(),
                     "Registrations should be sorted in descending order by id");
         }
     }
@@ -122,13 +121,13 @@ class RegistrationServiceImplTest {
                         .create())
                 .limit(10)
                 .toList();
-        System.out.println();
-        List<Registration> registrations = registrationRepository.saveAll(eventRegistrationRequestDTOS);
+
+        registrationRepository.saveAll(eventRegistrationRequestDTOS);
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "createdDateTime"));
         Set<Status> approved = Set.of(Status.APPROVED);
 
         List<RegistrationFullResponseDto> fullResponseDtos = registrationService.getRegistrationsByStatusAndEventId(approved, 1L, pageable);
-        assertEquals(fullResponseDtos.size(), 10);
+        assertEquals(10, fullResponseDtos.size());
     }
 
     @Test
@@ -147,7 +146,6 @@ class RegistrationServiceImplTest {
         assertEquals(10, statusCounts.get(Status.WAITLIST));
 
     }
-
 
     public Registration saveRegistration() {
         Registration eventRegistrationRequestDTO = Instancio.of(Registration.class)

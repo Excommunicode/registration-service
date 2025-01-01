@@ -24,7 +24,7 @@ import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.StatusDto;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.service.contract.RegistrationService;
 
 import java.util.List;
@@ -57,6 +57,7 @@ class RegistrationControllerTest {
             .build();
 
     private static final RegistrationUpdateRequestDto eventRegistrationDto = RegistrationUpdateRequestDto.builder()
+
             .username("Farukh")
             .email("someemail@mail.ru")
             .phone("+12345678901")
@@ -88,7 +89,7 @@ class RegistrationControllerTest {
     @Test
     @SneakyThrows
     void updateRegistration() {
-        Mockito.when(registrationService.updateRegistration(Mockito.any(RegistrationUpdateRequestDto.class)))
+        Mockito.when(registrationService.updateRegistration(Mockito.eq(eventRegistrationDto)))
                 .thenReturn(eventRegistrationDto);
 
         mockMvc.perform(MockMvcRequestBuilders.patch("/registrations")
@@ -194,7 +195,7 @@ class RegistrationControllerTest {
     @SneakyThrows
     void getStatusByEventIdAndUserId() {
         Mockito.when(registrationService.getStatusByEventIdAndUserId(Mockito.anyLong(), Mockito.anyLong()))
-                .thenReturn(new StatusDto());
+                .thenReturn( StatusDto.builder().build());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/registrations/{eventId}/status/{userid}", 1L, 1L)
                         .accept(MediaType.APPLICATION_JSON))

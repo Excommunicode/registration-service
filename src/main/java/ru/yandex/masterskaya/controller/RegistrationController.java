@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -34,7 +36,7 @@ import ru.yandex.masterskaya.dto.RegistrationResponseDTO;
 import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.StatusDto;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.service.contract.RegistrationService;
 
 import java.util.List;
@@ -53,21 +55,43 @@ public class RegistrationController {
 
     @Operation(
             summary = "Добавить новую регистрацию",
-            description = "Создает новую регистрацию на мероприятие с указанными данными.",
+            description = "Создает новую регистрацию на мероприятие с указанными данными. " +
+                    "Необходимо предоставить имя пользователя, электронную почту, номер телефона и идентификатор мероприятия.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные для создания регистрации",
                     required = true,
-                    content = @Content(schema = @Schema(implementation = RegistrationCreateRequestDto.class))
+                    content = @Content(
+                            schema = @Schema(implementation = RegistrationCreateRequestDto.class),
+                            examples = @ExampleObject(
+                                    name = "Пример запроса",
+                                    value = "{ \"username\": \"IvanIvanov\", \"email\": \"ivan@example.com\", \"phone\": \"+1234567890\", \"eventId\": 1 }"
+                            )
+                    )
             ),
             responses = {
                     @ApiResponse(
                             responseCode = "201",
                             description = "Регистрация успешно создана.",
-                            content = @Content(schema = @Schema(implementation = RegistrationResponseDTO.class))
+                            content = @Content(
+                                    schema = @Schema(implementation = RegistrationResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Пример успешного ответа",
+                                            value = "{ \"number\": \"1\",  \"password\": \"password\"}"
+                                    )
+                            )
                     ),
                     @ApiResponse(
                             responseCode = "400",
-                            description = "Ошибка валидации данных.",
+                            description = "Ошибка валидации данных. Проверьте корректность введенной информации.",
+                            content = @Content(
+                                    schema = @Schema(
+                                            example = "{ \"timestamp\": \"2024-12-30T12:34:56\", \"status\": 400, \"error\": \"Bad Request\", \"message\": \"Validation failed\", \"details\": [\"Username must be between 3 and 50 characters\"] }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Внутренняя ошибка сервера. Попробуйте позже.",
                             content = @Content
                     )
             }
@@ -75,10 +99,16 @@ public class RegistrationController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RegistrationResponseDTO addRegistration(
-            @Valid @RequestBody @Parameter(description = "Данные для регистрации") RegistrationCreateRequestDto eventRegistrationResponseDTO) {
-        log.info("Endpoint /registrations POST started. Received request to create registration {}", eventRegistrationResponseDTO);
-        return registrationService.addRegistration(eventRegistrationResponseDTO);
+            @Valid @RequestBody
+            @Parameter(
+                    description = "Данные для регистрации",
+                    required = true,
+                    schema = @Schema(implementation = RegistrationCreateRequestDto.class)
+            ) RegistrationCreateRequestDto registrationRequest) {
+        log.info("Начата обработка POST запроса на /registrations с данными: {}", registrationRequest);
+        return registrationService.addRegistration(registrationRequest);
     }
+
 
     @Operation(
             summary = "Обновить регистрацию",
@@ -194,7 +224,7 @@ public class RegistrationController {
     @ResponseStatus(HttpStatus.OK)
     public List<RegistrationCreateRequestDto> getAllByEventId(
             @RequestParam @Parameter(description = "ID мероприятия.") Long eventId,
-            @PageableDefault(sort = "id", direction = Sort.Direction.DESC)
+            @PageableDefault(sort = "id", direction = Sort.Direction.ASC)
             @Parameter(description = "Параметры пагинации.") Pageable pageable) {
         log.info("Endpoint /registrations GET started. Received request to get registrations with eventId: {}", eventId);
         return registrationService.getAllByEventId(eventId, pageable);
@@ -243,8 +273,6 @@ public class RegistrationController {
         log.info("Endpoint /registrations DELETE started. Received request to delete registration with eventId: {}", eventId);
         registrationService.deleteByPhoneNumberAndPassword(eventId, someDto);
     }
-
-
 
 
     @Operation(
@@ -389,8 +417,8 @@ public class RegistrationController {
                     )
             }
     )
-    @GetMapping("/{eventId}/status/counts")
     @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{eventId}/status/counts")
     public Map<Status, Integer> getStatusCounts(@PathVariable Long eventId) {
         log.info("Endpoint /registrations/{eventId}/status/counts GET started. With parameters eventId: {}", eventId);
         return registrationService.getStatusCounts(eventId);
@@ -429,8 +457,8 @@ public class RegistrationController {
                     )
             }
     )
-    @GetMapping("/{eventId}/status/{userId}")
     @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{eventId}/status/{userId}")
     public StatusDto getStatusByEventIdAndUserId(@PathVariable Long eventId, @PathVariable Long userId) {
         log.info("Endpoint /{eventId}/status/{userid} GET started. " +
                 "Received request to get status with eventId: {} and userId: {}", eventId, userId);

@@ -6,7 +6,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationDeletedEvent;
-import ru.yandex.masterskaya.model.Status;
+import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
 
 import java.util.Optional;
@@ -21,12 +21,12 @@ public class RegistrationEventListener {
     public void handleWaitListUpdate(RegistrationDeletedEvent event) {
         Long eventId = event.eventId();
         Optional<Registration> waitListCandidate = registrationRepository
-                .findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(eventId, Status.WAITLIST);
+                .findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(eventId);
 
         waitListCandidate.ifPresent(candidate -> {
             log.info("Promoting candidate from WAITLIST to PENDING: {}", candidate);
             candidate.setStatus(Status.PENDING);
-            registrationRepository.save(candidate);
+            registrationRepository.updateRegistrationById(candidate);
         });
 
     }

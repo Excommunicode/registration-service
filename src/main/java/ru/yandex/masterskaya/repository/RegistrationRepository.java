@@ -1,13 +1,14 @@
 package ru.yandex.masterskaya.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.yandex.masterskaya.dto.RegistrationCreateRequestDto;
 import ru.yandex.masterskaya.dto.StatusDto;
+import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
-import ru.yandex.masterskaya.model.Status;
 import ru.yandex.masterskaya.model.StatusProjection;
 
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.Set;
 
 public interface RegistrationRepository extends JpaRepository<Registration, Long>, RegistrationCustomRepository {
 
-    List<RegistrationProjection> findAllByEventId(Long eventId, Pageable pageable);
+    Page<RegistrationProjection> findAllByEventId(Long eventId, Pageable pageable);
 
     @Query("""
             SELECT r
@@ -32,17 +33,17 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
             WHERE r.eventId = :eventId
             AND r.status in :statuses
             """)
-    List<Registration> findByStatusInAndEventId(Set<Status> statuses, Long eventId, Pageable pageable);
+    Page<Registration> findByStatusInAndEventId(Set<Status> statuses, Long eventId, Pageable pageable);
 
-    @Query("""
-            SELECT r
-            FROM Registration r
-            WHERE r.eventId = :eventId
-            AND r.status = :status
-            ORDER BY r.createdDateTime ASC
+    @Query(nativeQuery = true, value = """
+            SELECT *
+            FROM registrations AS r
+            WHERE r.event_id = :eventId
+            AND r.status = 'WAITLIST'
+            ORDER BY r.created_date_time
             LIMIT 1
             """)
-    Optional<Registration> findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(Long eventId, Status status);
+    Optional<Registration> findFirstByEventIdAndStatusOrderByCreatedDateTimeAsc(Long eventId);
 
     @Query(nativeQuery = true, value = """
             SELECT r.status AS status, COUNT(r) AS count
@@ -62,9 +63,9 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     Optional<StatusDto> findByEventIdAndEmail(Long eventId, String email);
 
     @Query("""
-            SELECT new ru.yandex.masterskaya.dto.RegistrationCreateRequestDto(e.id, e.username, e.email, e.phone,e.eventId)
+            SELECT new ru.yandex.masterskaya.dto.RegistrationCreateRequestDto(e.id, e.username, e.email, e.phone, e.eventId)
             FROM Registration e
             WHERE e.id = :id
             """)
-    Optional<RegistrationCreateRequestDto> findByIdDTO(Long id);
+    Optional<RegistrationCreateRequestDto> findByIdDto(Long id);
 }

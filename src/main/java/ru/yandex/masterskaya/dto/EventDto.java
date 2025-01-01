@@ -1,22 +1,16 @@
 package ru.yandex.masterskaya.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder(toBuilder = true)
-public class EventDto {
-    private Long id;
-    private String name;
-    private String description;
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
-    private String location;
-    private Long ownerId;
+public record EventDto(Long id,
+                       String name,
+                       String description,
+                       LocalDateTime startDateTime,
+                       LocalDateTime endDateTime,
+                       String location,
+                       Long ownerId) implements Serializable {
 }
