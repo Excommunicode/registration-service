@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-created-date-status-rejected-reason
+      author: faruh
+      changes:
+        - addColumn:
+            tableName: registrations
+            columns:
+              - column:
+                  name: created_date_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rejected_reason
+                  type: VARCHAR(255)

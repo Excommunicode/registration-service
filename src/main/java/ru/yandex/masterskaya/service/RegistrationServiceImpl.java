@@ -78,7 +78,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         Registration registration = registrationMapper.toModelAfterDto(registrationUpdateRequestDto);
 
-
         Registration updatedRegistration = registrationRepository.updateByEventIdAndNumberAndPassword(registration);
 
         log.info("Registration successfully updated. Updated details: {}", updatedRegistration);
