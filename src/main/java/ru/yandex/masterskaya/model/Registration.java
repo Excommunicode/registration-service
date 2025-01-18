@@ -71,20 +71,4 @@ public class Registration implements Serializable {
     public int hashCode() {
         return Objects.hash(id, username, email, phone, eventId, number, password, status, rejectionReason, createdDateTime);
     }
-
-    @Override
-    public String toString() {
-        return "Registration{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", phone='" + phone + '\'' +
-                ", eventId=" + eventId +
-                ", number=" + number +
-                ", password='" + password + '\'' +
-                ", status=" + status +
-                ", rejectionReason='" + rejectionReason + '\'' +
-                ", createdDateTime=" + createdDateTime +
-                '}';
-    }
 }

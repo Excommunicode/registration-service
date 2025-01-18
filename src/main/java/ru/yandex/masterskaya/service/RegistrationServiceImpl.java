@@ -2,7 +2,6 @@ package ru.yandex.masterskaya.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,12 +21,12 @@ import ru.yandex.masterskaya.dto.RegistrationStatusUpdateRequestDto;
 import ru.yandex.masterskaya.dto.RegistrationUpdateRequestDto;
 import ru.yandex.masterskaya.dto.StatusDto;
 import ru.yandex.masterskaya.dto.UserResponseDTO;
+import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.exception.BadRequestException;
 import ru.yandex.masterskaya.exception.NotFoundException;
 import ru.yandex.masterskaya.mapper.RegistrationMapper;
 import ru.yandex.masterskaya.model.Registration;
 import ru.yandex.masterskaya.model.RegistrationProjection;
-import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.model.StatusProjection;
 import ru.yandex.masterskaya.repository.RegistrationRepository;
 import ru.yandex.masterskaya.service.contract.RegistrationService;
@@ -78,7 +77,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         log.info("Starting method updateRegistration for eventId:  with data: {}", registrationUpdateRequestDto);
 
         Registration registration = registrationMapper.toModelAfterDto(registrationUpdateRequestDto);
-
 
         Registration updatedRegistration = registrationRepository.updateByEventIdAndNumberAndPassword(registration);
 

@@ -7,7 +7,7 @@ import ru.yandex.masterskaya.config.FeignConfig;
 import ru.yandex.masterskaya.dto.EventDto;
 import ru.yandex.masterskaya.dto.EventTeamDto;
 
-@FeignClient(name = "event-service", configuration = FeignConfig.class)
+@FeignClient(name = "${event-service.name}", configuration = FeignConfig.class)
 public interface EventClient {
 
     @GetMapping("/events/{id}")

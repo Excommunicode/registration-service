@@ -2,9 +2,9 @@ package ru.yandex.masterskaya.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import ru.yandex.masterskaya.enums.Status;
 import ru.yandex.masterskaya.exception.BadRequestException;
 import ru.yandex.masterskaya.model.Registration;
-import ru.yandex.masterskaya.enums.Status;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
